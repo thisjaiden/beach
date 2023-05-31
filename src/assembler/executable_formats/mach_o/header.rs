@@ -24,20 +24,25 @@ use std::convert::TryInto;
 impl Header {
     /// Generates a [Header] from a type implementing [std::io::Read]. Assumes platform endinanness
     /// is little.
-    pub fn from_le_reader<R: std::io::Read>(reader: &mut R) -> Header {
-        /*
-        Header {
-            magic_number: u32::from_le_bytes(read_n_bytes(reader, 4).unwrap().try_into().unwrap()),
-            cpu_type: CPUType::from_reader(reader).unwrap(),
-            cpu_subtype: u32::from_le_bytes(read_n_bytes(reader, 4).unwrap().try_into().unwrap()),
-            file_type: (),
-            number_of_load_commands: u32::from_le_bytes(read_n_bytes(reader, 4).unwrap().try_into().unwrap()),
-            size_of_load_commands: u32::from_le_bytes(read_n_bytes(reader, 4).unwrap().try_into().unwrap()),
-            flags: (),
-            _reserved: u32::from_le_bytes(read_n_bytes(reader, 4).unwrap().try_into().unwrap()),
+    pub fn from_le_reader<R: std::io::Read>(reader: &mut R) -> Result<Header, anyhow::Error> {
+        let magic_number = u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap());
+        let cpu_type = CPUType::from_le_reader(reader)?;
+        let cpu_subtype = u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap());
+        let file_type = u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap());
+        let number_of_load_commands = u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap());
+        let size_of_load_commands = u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap());
+        let flags = u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap());
+        let _reserved = if magic_number == 0xFEEDFACF {
+            Some(u32::from_le_bytes(read_n_bytes(reader, 4)?.try_into().unwrap()))
         }
-        // */
-        todo!()
+        else {
+            None
+        };
+        Ok(Header {
+            magic_number, cpu_type, cpu_subtype,
+            file_type, number_of_load_commands, size_of_load_commands,
+            flags, _reserved
+        })
     }
 }
 
@@ -61,11 +66,12 @@ pub enum CPUType {
     I860øLE = 0x00000010,
     RSø6000 = 0x00000011,
     POWERPC = 0x00000012,
-    Invalid
+    /// Catch-all for values not recognized by beach
+    Unrecognized
 }
 
 impl CPUType {
-    pub fn from_le_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<CPUType> {
+    pub fn from_le_reader<R: std::io::Read>(reader: &mut R) -> Result<CPUType, anyhow::Error> {
         let bytes = read_n_bytes(reader, 4)?;
         return Ok(Self::from_le_bytes(bytes.try_into().unwrap()));
     }
@@ -76,7 +82,8 @@ impl CPUType {
             x if x == CPUType::NS32032 as u32 => CPUType::NS32032,
             // TODO: other CPU types
             x if x == CPUType::ARM as u32 => CPUType::ARM,
-            _ => CPUType::Invalid
+            x if x == CPUType::ARM64 as u32 => CPUType::ARM64,
+            _ => CPUType::Unrecognized
         }
 
     }
