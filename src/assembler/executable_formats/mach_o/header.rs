@@ -2,6 +2,7 @@ use crate::utils::*;
 use std::convert::TryInto;
 
 pub struct Header {
+    // TODO: Universal (multi) binary support, has a unique magic number
     /// The magic number for this header. Expected values:
     /// 0xfeedface - 32 bit executable
     /// 0xfeedfacf - 64 bit executable
@@ -12,7 +13,7 @@ pub struct Header {
     cpu_type: CPUType,
     // TODO: enum over this for better types
     cpu_subtype: u32,
-    // TODO: enum over this for better types
+    // TODO: switch to [FileType] enum
     file_type: u32,
     number_of_load_commands: u32,
     size_of_load_commands: u32,
@@ -54,6 +55,9 @@ impl Header {
             Endian::Little => {
                 return self.write_le(writer);
             }
+            Endian::Big => {
+                return self.write_be(writer);
+            }
             _ => todo!()
         }
     }
@@ -65,6 +69,20 @@ impl Header {
         writer.write_all(&self.number_of_load_commands.to_le_bytes())?;
         writer.write_all(&self.size_of_load_commands.to_le_bytes())?;
         writer.write_all(&self.flags.to_le_bytes())?;
+        if self._reserved.is_some() {
+            writer.write_all(&[0x00, 0x00, 0x00, 0x00])?;
+        }
+        writer.flush()?;
+        Ok(())
+    }
+    fn write_be<W: std::io::Write>(&self, writer: &mut W) -> Result<(), anyhow::Error> {
+        writer.write_all(&self.magic_number.to_be_bytes())?;
+        writer.write_all(&(self.cpu_type as u32).to_be_bytes())?;
+        writer.write_all(&self.cpu_subtype.to_be_bytes())?;
+        writer.write_all(&self.file_type.to_be_bytes())?;
+        writer.write_all(&self.number_of_load_commands.to_be_bytes())?;
+        writer.write_all(&self.size_of_load_commands.to_be_bytes())?;
+        writer.write_all(&self.flags.to_be_bytes())?;
         if self._reserved.is_some() {
             writer.write_all(&[0x00, 0x00, 0x00, 0x00])?;
         }
@@ -103,20 +121,39 @@ impl CPUType {
         let bytes = read_n_bytes(reader, 4)?;
         return Ok(Self::from_le_bytes(bytes.try_into().unwrap()));
     }
+    pub fn from_be_reader<R: std::io::Read>(reader: &mut R) -> Result<CPUType, anyhow::Error> {
+        let bytes = read_n_bytes(reader, 4)?;
+        return Ok(Self::from_be_bytes(bytes.try_into().unwrap()));
+    }
+    pub fn from_le_bytes(bytes: [u8; 4]) -> CPUType {
+        CPUType::from_u32(u32::from_le_bytes(bytes))
+    }
+    pub fn from_be_bytes(bytes: [u8; 4]) -> CPUType {
+        CPUType::from_u32(u32::from_be_bytes(bytes))
+    }
     pub fn from_u32(value: u32) -> CPUType {
         match value {
             x if x == CPUType::VAX as u32 => CPUType::VAX,
             x if x == CPUType::ROMP as u32 => CPUType::ROMP,
             x if x == CPUType::NS32032 as u32 => CPUType::NS32032,
-            // TODO: other CPU types
+            x if x == CPUType::NS32332 as u32 => CPUType::NS32332,
+            x if x == CPUType::MC680X0 as u32 => CPUType::MC680X0,
+            x if x == CPUType::X86 as u32 => CPUType::X86,
+            x if x == CPUType::X86ø64 as u32 => CPUType::X86ø64,
+            x if x == CPUType::MIPS as u32 => CPUType::MIPS,
+            x if x == CPUType::NS32352 as u32 => CPUType::NS32352,
+            x if x == CPUType::MC98000 as u32 => CPUType::MC98000,
+            x if x == CPUType::HPøPA as u32 => CPUType::HPøPA,
             x if x == CPUType::ARM as u32 => CPUType::ARM,
             x if x == CPUType::ARM64 as u32 => CPUType::ARM64,
+            x if x == CPUType::MC88000 as u32 => CPUType::MC88000,
+            x if x == CPUType::SPARC as u32 => CPUType::SPARC,
+            x if x == CPUType::I860øBE as u32 => CPUType::SPARC,
+            x if x == CPUType::I860øLE as u32 => CPUType::I860øLE,
+            x if x == CPUType::RSø6000 as u32 => CPUType::RSø6000,
+            x if x == CPUType::POWERPC as u32 => CPUType::POWERPC,
             _ => CPUType::Unrecognized
         }
-
-    }
-    pub fn from_le_bytes(bytes: [u8; 4]) -> CPUType {
-        CPUType::from_u32(u32::from_le_bytes(bytes))
     }
     pub fn endianness(&self) -> Endian {
         match self {
@@ -124,10 +161,30 @@ impl CPUType {
             CPUType::ARM64 => Endian::Little,
             CPUType::X86 => Endian::Little,
             CPUType::X86ø64 => Endian::Little,
-            // TODO
+            CPUType::I860øLE => Endian::Little,
+            CPUType::I860øBE => Endian::Big,
+            // TODO: rest of cpu endians
             _ => todo!()
         }
     }
+}
+
+#[derive(Clone, Copy)]
+#[repr(u32)]
+pub enum FileType {
+    RelocatableObjects = 0x00000001,
+    DemandPagedExecutable = 0x00000002,
+    FixedLibrary = 0x00000003,
+    CoreFile = 0x00000004,
+    PreloadedExecutable = 0x00000005,
+    DynamicLibrary = 0x00000006,
+    DynamicLinkEditor = 0x00000007,
+    DynamicallyBoundBundle = 0x00000008,
+    SharedLibraryStub = 0x00000009,
+    DebugCompanion = 0x0000000A,
+    X86ø64Kexts = 0x0000000B,
+    MultiMachO = 0x0000000C,
+    Unrecognized
 }
 
 enum Endian {

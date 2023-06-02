@@ -5,10 +5,11 @@ pub struct LoadCommand {
 }
 
 pub enum LoadCommands {
-    SegmentLoad(SegmentLoad)
+    SegmentLoad64(SegmentLoad64),
+    // TODO: other commands
 }
 
-pub struct SegmentLoad {
+pub struct SegmentLoad64 {
     /// Name of this segment. Maximum 16 characters long.
     segment_name: String,
     /// The target virtual address of this segment.
