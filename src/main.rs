@@ -1,6 +1,8 @@
 mod assembler;
+mod parser;
 mod utils;
+mod cli;
 
 fn main() {
-    println!("Hello, world!");
+    cli::main();
 }
