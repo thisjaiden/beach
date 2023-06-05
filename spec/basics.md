@@ -15,3 +15,13 @@ main {
 ```
 
 The first thing to run in your program. A type of function with no arguments in and no return value out.
+
+## comments
+
+```beach
+// a one line comment
+/*
+ A multi-line comment!
+*/
+```
+
