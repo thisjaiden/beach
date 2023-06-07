@@ -28,28 +28,39 @@ impl StringReader {
         let char_data = char_indices.collect();
         StringReader { string_data: string, location: 0, char_data }
     }
-    pub fn read_char(&mut self) -> char {
+    pub fn read_char(&mut self) -> Option<char> {
         if let Ok(arr_loc) = self.char_data.binary_search_by_key(&self.location, |&(a, b)| a) {
             self.location = self.char_data[arr_loc + 1].0;
-            return self.char_data[arr_loc].1;
+            return Some(self.char_data[arr_loc].1);
         }
         else {
-            todo!()
+            None
+        }
+    }
+    pub fn peek_char(&self) -> Option<char> {
+        if let Ok(arr_loc) = self.char_data.binary_search_by_key(&self.location, |&(a, b)| a) {
+            return Some(self.char_data[arr_loc].1);
+        }
+        else {
+            None
         }
     }
     pub fn read_line(&mut self) -> String {
         let mut output = String::new();
         loop {
             let this_char = self.read_char();
-            if this_char == '\r' {
+            if this_char == Some('\r') {
                 self.read_char();
                 break;
             }
-            else if this_char == '\n' {
+            else if this_char == Some('\n') {
+                break;
+            }
+            else if this_char == None {
                 break;
             }
             else {
-                output += &this_char.to_string();
+                output += &this_char.unwrap().to_string();
             }
         }
         output
@@ -59,36 +70,42 @@ impl StringReader {
         let mut output = String::new();
         loop {
             let this_char = self.read_char();
-            if this_char == watch_for {
+            if this_char == Some(watch_for) {
                 break;
             }
+            else if this_char == None {
+                panic!("buffer ended before `watch_for`");
+            }
             else {
-                output += &this_char.to_string();
+                output += &this_char.unwrap().to_string();
             }
         }
         output
     }
-    pub fn next_non_whitespace_char(&mut self) -> char {
+    pub fn next_non_whitespace_char(&mut self) -> Option<char> {
         loop {
-            let this_char = self.read_char();
+            let this_char = self.read_char()?;
             if !this_char.is_whitespace() {
-                return this_char
+                return Some(this_char)
             }
         }
     }
 }
 
 /// TODO
+#[derive(Debug)]
 pub struct Bigint {
 
 }
 
 /// TODO
+#[derive(Debug)]
 pub struct Bigfloat {
 
 }
 
 /// TODO
+#[derive(Debug)]
 pub struct Bigcplx {
 
 }

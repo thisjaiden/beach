@@ -1,9 +1,19 @@
 use crate::utils::*;
 
+#[derive(Debug)]
 pub struct SyntaxRoot {
     pub symbols: Vec<Symbol>
 }
 
+impl SyntaxRoot {
+    pub fn from_string(from: String) -> SyntaxRoot {
+        let mut reader = StringReader::from_string(from);
+        let symbols = Symbol::read_all_symbols(&mut reader);
+        SyntaxRoot { symbols }
+    }
+}
+
+#[derive(Debug)]
 pub enum Symbol {
     Comment(String), //        // ARG
     Comments(String), //       /*ARG*/
@@ -43,40 +53,80 @@ pub enum Symbol {
 }
 
 impl Symbol {
-    pub fn find(reader: &mut StringReader) -> Symbol {
-        let first_char = reader.next_non_whitespace_char();
+    pub fn next(reader: &mut StringReader) -> Option<Symbol> {
+        let first_char = reader.next_non_whitespace_char()?;
+        let second_char = reader.peek_char();
         match first_char {
-            '{' => return Symbol::Braced(
+            // Exclusive one char symbols
+            ';' => return Some(Symbol::PhraseEnd),
+            '/' => return Some(Symbol::Divide),
+            '~' => return Some(Symbol::Child),
+            '+' => return Some(Symbol::Add),
+            '%' => return Some(Symbol::Modulo),
+            ':' => return Some(Symbol::Is),
+            // One or two char symbols
+            '&' => {
+                if second_char == Some('&') {
+                    return Some(Symbol::LogicAnd);
+                }
+                else {
+                    return Some(Symbol::BitAnd);
+                }
+            }
+            // Enclosure symbols
+            '{' => return Some(Symbol::Braced(
                 Symbol::read_all_symbols(
                     &mut StringReader::from_string(
                         reader.read_until('}')
                     )
                 )
-            ),
-            '[' => return Symbol::Bracketed(
+            )),
+            '[' => return Some(Symbol::Bracketed(
                 Symbol::read_all_symbols(
                     &mut StringReader::from_string(
                         reader.read_until(']')
                     )
                 )
-            ),
-            '(' => return Symbol::Enclosed(
+            )),
+            '(' => return Some(Symbol::Enclosed(
                 Symbol::read_all_symbols(
                     &mut StringReader::from_string(
                         reader.read_until(')')
                     )
                 )
-            ),
-            ';' => return Symbol::PhraseEnd,
-            '~' => return Symbol::Child,
+            )),
+            // TODO: this whole thing with `|` is problematic :(
+            '|' => {
+                if second_char != Some('|') && second_char != Some(' ') {
+                    return Some(Symbol::Closure(
+                        Symbol::read_all_symbols(
+                            &mut StringReader::from_string(
+                                // TODO: THIS IS PROBLEMATIC!!! (recursion)
+                                reader.read_until('|')
+                            )
+                        )
+                    ))
+                }
+                else if second_char == Some(' ') {
+                    return Some(Symbol::BitOr);
+                }
+                else {
+                    return Some(Symbol::LogicOr);
+                }
+            },
             _ => todo!()
         }
     }
     pub fn read_all_symbols(reader: &mut StringReader) -> Vec<Symbol> {
-        todo!();
+        let mut symbols = vec![];
+        while let Some(symbol) = Symbol::next(reader) {
+            symbols.push(symbol);
+        }
+        symbols
     }
 }
 
+#[derive(Debug)]
 pub enum Keyword {
     main,
     disable,

@@ -1,1 +1,1 @@
-mod beach;
+pub mod beach;
