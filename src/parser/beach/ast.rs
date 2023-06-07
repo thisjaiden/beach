@@ -1,4 +1,4 @@
-use crate::utils::StringReader;
+use crate::utils::*;
 
 pub struct SyntaxRoot {
     pub symbols: Vec<Symbol>
@@ -10,13 +10,36 @@ pub enum Symbol {
     Braced(Vec<Symbol>), //    {ARGS}
     Bracketed(Vec<Symbol>), // [ARGS]
     Enclosed(Vec<Symbol>), //  (ARGS)
-    Keyword(Keyword), //       ARG
-    PhraseEnd, //              ;
+    Closure(Vec<Symbol>), //   |ARGS|
     Alias, //                  =>
     ExportedAlias, //          =>!
-    Returns, //                ->
-    Child, //                  ~
+    Becomes, //                ->
     Parent, //                 <-
+    Child, //                  ~
+    PhraseEnd, //              ;
+    Is, //                     :
+    Set, //                    =
+    Equals, //                 ==
+    DoesNotEqual, //           !=
+    ApproxEquals, //           =~
+    ApproxDoesNotEqual, //     !~
+    BitOr, //                  |
+    BitAnd, //                 &
+    BitXor, //                 ^
+    LogicOr, //                ||
+    LogicAnd, //               &&
+    LogicXor, //               ^^
+    Power, //                  **
+    Add, //                    +
+    Subtract, //               -
+    Divide, //                 /
+    Multiply, //               *
+    Modulo, //                 %
+    Keyword(Keyword), //       ARG
+    Integer(Bigint), //        ARG
+    Float(Bigfloat), //        ARG
+    Complex(Bigcplx), //       ARG
+    Label(String), //          ARG
 }
 
 impl Symbol {

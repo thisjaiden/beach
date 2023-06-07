@@ -77,3 +77,18 @@ impl StringReader {
         }
     }
 }
+
+/// TODO
+pub struct Bigint {
+
+}
+
+/// TODO
+pub struct Bigfloat {
+
+}
+
+/// TODO
+pub struct Bigcplx {
+
+}
