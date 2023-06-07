@@ -11,7 +11,7 @@ Creates an alias in this file. Adding an ! to the end of the alias symbol export
 ```beach
 main {
     // Code here!
-}
+};
 ```
 
 The first thing to run in your program. A type of function with no arguments in and no return value out.

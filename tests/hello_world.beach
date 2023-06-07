@@ -4,7 +4,7 @@ needs stdout;
 wants keep_console_open;
 
 // Creates an alias: print refers to platform~stdout
-print => platform~stdout
+print => platform~stdout;
 
 // Runs on program start
 main {
@@ -12,4 +12,4 @@ main {
     print("Hello world!");
     // Keep the console open, if possible.
     keep_console_open;
-}
+};
