@@ -57,6 +57,28 @@ let multiply = |a: integer, b: integer| -> integer {
 };
 ```
 
+## Special Function Considerations
+Note that functions have some special rules:
+- All functions must have a return type. If no return value is needed, use `nothing`.
+- All functions must have at least one argument. If no arguments are needed, use `nothing`. An example is provided:
+```beach
+let weird_function = |nothing| -> nothing { ... };
+```
+- All functions must return from every branch. If the function is a void function this is done with a simple `return` keyword.
+    - As an exception to the previous rule, if a function *never* returns, it may have the `never` return type. These functions *may not* return, under *any* circumstance.
+- Calling a function with no arguments may be done without including the parentheses after the funciton name.
+- Functions can be declared in any scope. The exception is mutable functions, which must be declared locally.
+
+## Scope
+The following scopes exist in beach:
+- Global scope
+- Main scope
+- Local scope
+- Function scope
+
+This order can be followed most to least global. (e.g. Global is in Main, Main is in Local, ect.)
+Variables in Global scope *must* be constant.
+
 ## General Types
 |type     |members                      |usage          |operators               |
 |---------|-----------------------------|---------------|------------------------|
@@ -65,3 +87,5 @@ let multiply = |a: integer, b: integer| -> integer {
 |complex  |c64;128, bigcplx             |complex numbers|+,-,*,=~,!~,^           |<!-- more operators should be possible here, look into this -->
 |printable|string, str, char            |text           |+,==,!=                 |
 |...      |...                          |...            |...                     |
+|nothing  |N/A                          |void fns       |                        |
+|never    |N/A                          |divergent fns  |                        |
