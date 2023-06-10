@@ -1,5 +1,9 @@
 use crate::utils::*;
 
+mod keywords;
+
+use self::keywords::*;
+
 #[derive(Debug)]
 pub struct SyntaxRoot {
     pub symbols: Vec<Symbol>
@@ -45,6 +49,10 @@ pub enum Symbol {
     Divide, //                 /
     Multiply, //               *
     Modulo, //                 %
+    LessThan, //               <
+    MoreThan, //               >
+    LessThanOrEqual, //        <=
+    MoreThanOrEqual, //        >=
     Keyword(Keyword), //       ARG
     Integer(Bigint), //        ARG
     Float(Bigfloat), //        ARG
@@ -56,21 +64,46 @@ impl Symbol {
     pub fn next(reader: &mut StringReader) -> Option<Symbol> {
         let first_char = reader.next_non_whitespace_char()?;
         let second_char = reader.peek_char();
+        let peaked_word = format!("{}{}", first_char, reader.peek_word());
+
+        if keywords::KEYWORDS.contains(&peaked_word.as_str()) {
+
+        }
         match first_char {
             // Exclusive one char symbols
             ';' => return Some(Symbol::PhraseEnd),
-            '/' => return Some(Symbol::Divide),
             '~' => return Some(Symbol::Child),
             '+' => return Some(Symbol::Add),
             '%' => return Some(Symbol::Modulo),
             ':' => return Some(Symbol::Is),
             // One or two char symbols
+            '/' => {
+                if second_char == Some('/') {
+                    // throw away the next slash
+                    reader.read_char();
+                    // read the rest of the line to a comment
+                    return Some(Symbol::Comment(
+                        reader.read_line()
+                    ));
+                }
+                else {
+                    return Some(Symbol::Divide);
+                }
+            }
             '&' => {
                 if second_char == Some('&') {
                     return Some(Symbol::LogicAnd);
                 }
                 else {
                     return Some(Symbol::BitAnd);
+                }
+            }
+            '-' => {
+                if second_char == Some('>') {
+                    return Some(Symbol::Becomes);
+                }
+                else {
+                    return Some(Symbol::Subtract);
                 }
             }
             // Enclosure symbols
@@ -118,22 +151,12 @@ impl Symbol {
         }
     }
     pub fn read_all_symbols(reader: &mut StringReader) -> Vec<Symbol> {
+        println!("Reading all symbols!");
         let mut symbols = vec![];
         while let Some(symbol) = Symbol::next(reader) {
+            println!("Got a symbol {:?}", symbol);
             symbols.push(symbol);
         }
         symbols
     }
-}
-
-#[derive(Debug)]
-pub enum Keyword {
-    main,
-    disable,
-    wants,
-    needs,
-    k_pub,
-    var,
-    file,
-    k_for,
 }

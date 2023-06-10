@@ -84,7 +84,7 @@ Variables in Global scope *must* be constant.
 |---------|-----------------------------|---------------|------------------------|
 |integer  |u/i8;16;32;64;128;256, bigint|whole numbers  |+,-,/,*,**,==,!=,&,|,^,%|
 |number   |f32;64, bigfloat, fraction   |real numbers   |+,-,/,*,**,=~,!~,%      |
-|complex  |c64;128, bigcplx             |complex numbers|+,-,*,=~,!~,^           |<!-- more operators should be possible here, look into this -->
+|complex  |c64;128, bigcplx             |complex numbers|+,-,*,**,=~,!~          |<!-- more operators should be possible here, look into this -->
 |printable|string, str, char            |text           |+,==,!=                 |
 |...      |...                          |...            |...                     |
 |nothing  |N/A                          |void fns       |                        |

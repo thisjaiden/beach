@@ -45,6 +45,28 @@ impl StringReader {
             None
         }
     }
+    pub fn peek_word(&self) -> String {
+        let mut word = String::new();
+        if let Ok(arr_loc) = self.char_data.binary_search_by_key(&self.location, |&(a, b)| a) {
+            let mut idx = 0;
+            loop {
+                let loc_res = self.char_data.get(arr_loc + idx);
+                if let Some((_stridx, character)) = loc_res {
+                    if character.is_whitespace() {
+                        break;
+                    }
+                    else {
+                        word += &character.to_string();
+                    }
+                }
+                else {
+                    break;
+                }
+                idx += 1;
+            }
+        }
+        word
+    }
     pub fn read_line(&mut self) -> String {
         let mut output = String::new();
         loop {
@@ -86,7 +108,7 @@ impl StringReader {
         loop {
             let this_char = self.read_char()?;
             if !this_char.is_whitespace() {
-                return Some(this_char)
+                return Some(this_char);
             }
         }
     }
