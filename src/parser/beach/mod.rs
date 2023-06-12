@@ -1,11 +1,14 @@
+// literal syntax tree
+mod lst;
+// abstract syntax tree
 mod ast;
 
-pub use self::ast::RESERVED_LABEL_SYMBOLS;
+pub use self::lst::RESERVED_LABEL_SYMBOLS;
 
-pub fn read<R: std::io::Read>(reader: &mut R) -> ast::SyntaxRoot {
+pub fn read<R: std::io::Read>(reader: &mut R) -> lst::SyntaxRoot {
     todo!();
 }
 
-pub fn parse_string_file(file: String) -> ast::SyntaxRoot {
-    ast::SyntaxRoot::from_string(file)
+pub fn parse_string_file(file: String) -> lst::SyntaxRoot {
+    lst::SyntaxRoot::from_string(file)
 }

@@ -1,6 +1,7 @@
 use std::env::args;
 
 pub fn main() {
+    println!("🏖️ beach v{}", env!("CARGO_PKG_VERSION"));
     let mut args = args();
     // We don't need the running executable's path (if it exists)
     args.next().unwrap();
