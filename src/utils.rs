@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use crate::parser::beach::RESERVED_LABEL_SYMBOLS;
+
 /// Reads `num_bytes` from a [Read] source, returning the output in a new [Vec].
 // TODO: Errors, example usage
 pub fn read_n_bytes<R: Read>(reader: &mut R, num_bytes: usize) -> Result<Vec<u8>, anyhow::Error> {
@@ -30,7 +32,14 @@ impl StringReader {
     }
     pub fn read_char(&mut self) -> Option<char> {
         if let Ok(arr_loc) = self.char_data.binary_search_by_key(&self.location, |&(a, b)| a) {
-            self.location = self.char_data[arr_loc + 1].0;
+            let tmp = self.char_data.get(arr_loc + 1);
+            if let Some(dta) = tmp {
+                self.location = dta.0;
+            }
+            else {
+                // end of buffer!
+                self.location = usize::MAX;
+            }
             return Some(self.char_data[arr_loc].1);
         }
         else {
@@ -52,7 +61,30 @@ impl StringReader {
             loop {
                 let loc_res = self.char_data.get(arr_loc + idx);
                 if let Some((_stridx, character)) = loc_res {
-                    if character.is_whitespace() {
+                    if character.is_whitespace() || RESERVED_LABEL_SYMBOLS.contains(character) {
+                        break;
+                    }
+                    else {
+                        word += &character.to_string();
+                    }
+                }
+                else {
+                    break;
+                }
+                idx += 1;
+            }
+        }
+        word
+    }
+    pub fn read_word(&mut self) -> String {
+        let mut word = String::new();
+        if let Ok(arr_loc) = self.char_data.binary_search_by_key(&self.location, |&(a, b)| a) {
+            let mut idx = 0;
+            loop {
+                let loc_res = self.char_data.get(arr_loc + idx);
+                if let Some((_stridx, character)) = loc_res {
+                    if character.is_whitespace() || RESERVED_LABEL_SYMBOLS.contains(character) {
+                        self.location = self.char_data[arr_loc + idx].0;
                         break;
                     }
                     else {

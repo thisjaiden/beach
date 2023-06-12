@@ -19,7 +19,7 @@ impl SyntaxRoot {
 
 #[derive(Debug)]
 pub enum Symbol {
-    Comment(String), //        // ARG
+    Comment(String), //        //ARG
     Comments(String), //       /*ARG*/
     Braced(Vec<Symbol>), //    {ARGS}
     Bracketed(Vec<Symbol>), // [ARGS]
@@ -53,6 +53,7 @@ pub enum Symbol {
     MoreThan, //               >
     LessThanOrEqual, //        <=
     MoreThanOrEqual, //        >=
+    Also, //                   ,
     Keyword(Keyword), //       ARG
     Integer(Bigint), //        ARG
     Float(Bigfloat), //        ARG
@@ -60,15 +61,24 @@ pub enum Symbol {
     Label(String), //          ARG
 }
 
+// The following characters *cannot* appear in labels.
+pub const RESERVED_LABEL_SYMBOLS: &[char] = &[
+    ';', ',', ':', '(', ')' // TODO: rest of the symbols that should go here
+];
+
 impl Symbol {
     pub fn next(reader: &mut StringReader) -> Option<Symbol> {
         let first_char = reader.next_non_whitespace_char()?;
         let second_char = reader.peek_char();
         let peaked_word = format!("{}{}", first_char, reader.peek_word());
 
-        if keywords::KEYWORDS.contains(&peaked_word.as_str()) {
-
+        for (index, keyword) in keywords::KEYWORDS.iter().enumerate() {
+            if &peaked_word.as_str() == keyword {
+                reader.read_word();
+                return Some(Symbol::Keyword(keywords::KEYWORDS_TYPED[index]));
+            }
         }
+
         match first_char {
             // Exclusive one char symbols
             ';' => return Some(Symbol::PhraseEnd),
@@ -77,6 +87,25 @@ impl Symbol {
             '%' => return Some(Symbol::Modulo),
             ':' => return Some(Symbol::Is),
             // One or two char symbols
+            '=' => {
+                if second_char == Some('>') {
+                    // throw away arrow
+                    reader.read_char();
+                    // check if we have a ! next
+                    let next = reader.peek_char();
+                    if next == Some('!') {
+                        // throw away !
+                        reader.read_char();
+                        return Some(Symbol::ExportedAlias);
+                    }
+                    else {
+                        return Some(Symbol::Alias);
+                    }
+                }
+                else {
+                    return Some(Symbol::Set);
+                }
+            }
             '/' => {
                 if second_char == Some('/') {
                     // throw away the next slash
@@ -86,6 +115,7 @@ impl Symbol {
                         reader.read_line()
                     ));
                 }
+                // TODO: if it's a `*`, multi-line comment
                 else {
                     return Some(Symbol::Divide);
                 }
@@ -108,11 +138,12 @@ impl Symbol {
             }
             // Enclosure symbols
             '{' => return Some(Symbol::Braced(
-                Symbol::read_all_symbols(
-                    &mut StringReader::from_string(
-                        reader.read_until('}')
-                    )
-                )
+                vec![]
+                //Symbol::read_all_symbols(
+                //    &mut StringReader::from_string(
+                //        reader.read_until('}')
+                //    )
+                //)
             )),
             '[' => return Some(Symbol::Bracketed(
                 Symbol::read_all_symbols(
@@ -122,11 +153,12 @@ impl Symbol {
                 )
             )),
             '(' => return Some(Symbol::Enclosed(
-                Symbol::read_all_symbols(
-                    &mut StringReader::from_string(
-                        reader.read_until(')')
-                    )
-                )
+                vec![]
+                //Symbol::read_all_symbols(
+                //    &mut StringReader::from_string(
+                //        reader.read_until(')')
+                //    )
+                //)
             )),
             // TODO: this whole thing with `|` is problematic :(
             '|' => {
@@ -147,14 +179,17 @@ impl Symbol {
                     return Some(Symbol::LogicOr);
                 }
             },
-            _ => todo!()
+            _ => {}
         }
+        // TODO: differentiate numeric values and other types
+        reader.read_word();
+        return Some(Symbol::Label(peaked_word));
     }
     pub fn read_all_symbols(reader: &mut StringReader) -> Vec<Symbol> {
         println!("Reading all symbols!");
         let mut symbols = vec![];
         while let Some(symbol) = Symbol::next(reader) {
-            println!("Got a symbol {:?}", symbol);
+            println!("Symbol::{:?}", symbol);
             symbols.push(symbol);
         }
         symbols

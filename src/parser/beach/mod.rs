@@ -1,5 +1,7 @@
 mod ast;
 
+pub use self::ast::RESERVED_LABEL_SYMBOLS;
+
 pub fn read<R: std::io::Read>(reader: &mut R) -> ast::SyntaxRoot {
     todo!();
 }

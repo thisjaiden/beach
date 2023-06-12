@@ -12,7 +12,7 @@ pub fn main() {
                 let target_dir = std::path::PathBuf::from_str("/Users/thisjaiden/Desktop/beach/tests/hello_world.beach").unwrap();
                 let data = std::fs::read_to_string(target_dir).unwrap();
                 let parsed_data = crate::parser::beach::parse_string_file(data);
-                println!("{:?}", parsed_data);
+                println!("{:#?}", parsed_data);
                 return;
             }
             _ => {}
