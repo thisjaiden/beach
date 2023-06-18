@@ -160,6 +160,7 @@ impl Symbol {
             }
             '&' => {
                 if second_char == Some('&') {
+                    reader.read_char();
                     return Some(Symbol::LogicAnd);
                 }
                 else {
@@ -168,11 +169,20 @@ impl Symbol {
             }
             '-' => {
                 if second_char == Some('>') {
+                    reader.read_char();
                     return Some(Symbol::Becomes);
                 }
                 else {
                     return Some(Symbol::Subtract);
                 }
+            }
+            '<' => {
+                if second_char == Some('-') {
+                    reader.read_char();
+                    return Some(Symbol::Parent);
+                }
+                // todo other ops
+                todo!();
             }
             // TODO: this whole thing with `|` is problematic :(
             '|' => {
