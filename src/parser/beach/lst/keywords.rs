@@ -1,4 +1,4 @@
-pub const KEYWORDS: [&'static str; 5] = [
+pub const KEYWORDS: &[&str] = &[
     "needs", "main", "disable", "wants", "var"
 ];
 

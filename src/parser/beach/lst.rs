@@ -46,6 +46,7 @@ pub enum Symbol {
     LogicOr, //                ||
     LogicAnd, //               &&
     LogicXor, //               ^^
+    LogicNot, //               !
     Power, //                  **
     Add, //                    +
     Subtract, //               -
@@ -96,6 +97,7 @@ impl Symbol {
             ']' => return Some(Symbol::CloseBracket),
             '(' => return Some(Symbol::OpenParenthesis),
             ')' => return Some(Symbol::Closeparenthesis),
+            ',' => return Some(Symbol::Also),
             '"' => {
                 let mut output_string = String::new();
                 let mut last_char = '"';
@@ -124,6 +126,10 @@ impl Symbol {
                     else {
                         return Some(Symbol::Alias);
                     }
+                }
+                else if second_char == Some('=') {
+                    reader.read_char();
+                    return Some(Symbol::Equals);
                 }
                 else {
                     return Some(Symbol::Set);
@@ -167,6 +173,15 @@ impl Symbol {
                     return Some(Symbol::BitAnd);
                 }
             }
+            '^' => {
+                if second_char == Some('^') {
+                    reader.read_char();
+                    return Some(Symbol::LogicXor);
+                }
+                else {
+                    return Some(Symbol::BitXor);
+                }
+            }
             '-' => {
                 if second_char == Some('>') {
                     reader.read_char();
@@ -181,8 +196,22 @@ impl Symbol {
                     reader.read_char();
                     return Some(Symbol::Parent);
                 }
-                // todo other ops
-                todo!();
+                else if second_char == Some('=') {
+                    reader.read_char();
+                    return Some(Symbol::LessThanOrEqual);
+                }
+                else {
+                    return Some(Symbol::LessThan);
+                }
+            }
+            '>' => {
+                if second_char == Some('=') {
+                    reader.read_char();
+                    return Some(Symbol::MoreThanOrEqual);
+                }
+                else {
+                    return Some(Symbol::MoreThan);
+                }
             }
             // TODO: this whole thing with `|` is problematic :(
             '|' => {
