@@ -5,6 +5,7 @@ struct AssemblyGenerator;
 impl generic::AssemblyGenerator for AssemblyGenerator {
     const POINTER_WIDTH: u8 = 8;
     const REGISTER_WIDTH: u8 = 8;
+    const INSTRUCTION_WIDTH: u8 = 4;
 
     fn goto(label: String) -> String {
         todo!()
@@ -32,9 +33,19 @@ impl generic::AssemblyGenerator for AssemblyGenerator {
             _ => todo!()
         }
     }
-
     fn data(label: String, bytes: &[u8]) -> String {
-        todo!()
+        let mut output = String::new();
+        output += &format!("{label}:\n");
+        output += ".byte ";
+        for byte in bytes {
+            output += &format!("0x{:X}, ", *byte);
+        }
+        output.pop();
+        output.pop();
+        output += "\n";
+        // realigned for instructions
+        output += ".align 2\n";
+        return output;
     }
 
     fn add(value: generic::Data, to: generic::Data) -> String {

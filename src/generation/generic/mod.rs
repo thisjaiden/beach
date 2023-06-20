@@ -6,6 +6,8 @@ pub trait AssemblyGenerator {
     const POINTER_WIDTH: u8;
     /// The width of registers on this platform, in bytes.
     const REGISTER_WIDTH: u8;
+    /// The minimum width of instructions on this platform, in bytes.
+    const INSTRUCTION_WIDTH: u8;
     /// Assembly that sets the executing location to `label`.
     fn goto(label: String) -> String;
     /// Assembly that calls a method located at `label`.
