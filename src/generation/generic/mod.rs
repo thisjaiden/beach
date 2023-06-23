@@ -9,7 +9,7 @@ pub trait AssemblyGenerator {
     /// The minimum width of instructions on this platform, in bytes.
     const INSTRUCTION_WIDTH: u8;
     /// Assembly that sets the executing location to `label`.
-    fn goto(label: String) -> String;
+    fn goto(label: Data) -> String;
     /// Assembly that calls a method located at `label`.
     fn call(label: Data) -> String;
     /// Assembly that stores `bytes` at a location `label`.
@@ -22,9 +22,14 @@ pub trait AssemblyGenerator {
 }
 
 pub enum Extension {
+    /// pushes [0] to a generic stack
     StackPush(Box<dyn Fn(Data) -> String>),
+    /// pops [0] from a generic stack
     StackPop(Box<dyn Fn(Data) -> String>),
-    GotoIfZero(Box<dyn Fn(Data, String) -> String>),
+    /// goes to [0] if [1] equals zero
+    GotoIfZero(Box<dyn Fn(Data, Data) -> String>),
+    /// adds [0] to [1], storing the result in [2]
+    AddStore(Box<dyn Fn(Data, Data, Data) -> String>),
 }
 
 pub enum Data {

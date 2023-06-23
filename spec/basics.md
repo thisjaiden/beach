@@ -28,6 +28,15 @@ The first thing to run in your program. A type of function with no arguments in 
 */
 ```
 
+## variables
+
+```beach
+// Implied type from context. Usually the smallest type that functions.
+var name = value;
+// To specifiy type used.
+var name: type = value;
+```
+
 ## logical operations
 
 ```beach
@@ -41,4 +50,37 @@ a || b  // True  (OR)
 a ^^ b  // True  (XOR)
 !a == b // True  (NOT)
 
+```
+
+## external files
+
+```beach
+// Imports a local file (file_name.beach)
+import file_name;
+// Imports a library with a specified version
+import library_name~1.2.3;
+// Imports a library with a different top level name
+import library_name~1.2.3 => namespace_alias;
+```
+
+## typecasting
+
+```beach
+// Typecasting between basic types
+let a: u16 = 1234;
+let b: i32 = 1234 -> i32;
+```
+
+## arithmetic
+
+```beach
+a + b //  Addition
+a - b //  Subtraction
+a / b //  Division
+a * b //  Multiplication
+a % b //  Modulo
+a ** b // Power
+a & b //  Bitwise AND
+a | b //  Bitwise OR
+a ^ b //  Bitwise XOR
 ```

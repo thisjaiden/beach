@@ -32,7 +32,7 @@ pub enum Symbol {
     ExportedAlias, //          =>!
     Becomes, //                ->
     Parent, //                 <-
-    Child, //                  ~
+    Specification, //          ~
     PhraseEnd, //              ;
     Is, //                     :
     Set, //                    =
@@ -87,7 +87,7 @@ impl Symbol {
         match first_char {
             // Exclusive one char symbols
             ';' => return Some(Symbol::PhraseEnd),
-            '~' => return Some(Symbol::Child),
+            '~' => return Some(Symbol::Specification),
             '+' => return Some(Symbol::Add),
             '%' => return Some(Symbol::Modulo),
             ':' => return Some(Symbol::Is),
@@ -98,6 +98,24 @@ impl Symbol {
             '(' => return Some(Symbol::OpenParenthesis),
             ')' => return Some(Symbol::Closeparenthesis),
             ',' => return Some(Symbol::Also),
+            '!' => {
+                if second_char == Some('=') {
+                    reader.read_char();
+                    return Some(Symbol::DoesNotEqual);
+                }
+                else {
+                    return Some(Symbol::LogicNot);
+                }
+            }
+            '*' => {
+                if second_char == Some('*') {
+                    reader.read_char();
+                    return Some(Symbol::Power);
+                }
+                else {
+                    return Some(Symbol::Multiply);
+                }
+            }
             '"' => {
                 let mut output_string = String::new();
                 let mut last_char = '"';

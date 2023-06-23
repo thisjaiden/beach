@@ -7,10 +7,20 @@ impl generic::AssemblyGenerator for AssemblyGenerator {
     const REGISTER_WIDTH: u8 = 8;
     const INSTRUCTION_WIDTH: u8 = 4;
 
-    fn goto(label: String) -> String {
-        todo!()
+    fn goto(label: generic::Data) -> String {
+        match label {
+            generic::Data::Label(label_name) => {
+                let mut output = String::new();
+                output += &format!("mov x9, [{label_name}]\n");
+                output += "br x9\n";
+                return output;
+            }
+            generic::Data::Register(register_name) => {
+                return format!("br {register_name}\n");
+            }
+            _ => todo!()
+        }
     }
-
     fn call(label: generic::Data) -> String {
         match label {
             generic::Data::Label(label_name) => {
