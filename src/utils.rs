@@ -149,7 +149,55 @@ impl StringReader {
 /// TODO
 #[derive(Debug)]
 pub struct Bigint {
+    sign: bool,
+    // later in the array is bigger
+    bytes: Vec<u8>
+}
 
+impl std::fmt::Display for Bigint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.sign {
+            write!(f, "-")?;
+        }
+        todo!();
+        write!(f, "")
+    }
+}
+
+impl Bigint {
+    pub fn from_u8(input: u8) -> Bigint {
+        Bigint {
+            sign: false,
+            bytes: vec![input]
+        }
+    }
+    pub fn from_i8(input: i8) -> Bigint {
+        if input.is_negative() {
+            Bigint {
+                sign: true,
+                bytes: vec![(input * -1) as u8]
+            }
+        }
+        else {
+            Bigint {
+                sign: false,
+                bytes: vec![input as u8]
+            }
+        }
+    }
+    pub fn bit_width(&self) -> usize {
+        highest_bit(*self.bytes.last().unwrap()) + (8 * (self.bytes.len() - 1))
+    }
+}
+
+fn highest_bit(input: u8) -> usize {
+    let mut highest = 0;
+    for i in 0..8 {
+        if input << i & 0b00000001 == 0b00000001 {
+            highest = i;
+        }
+    }
+    return highest;
 }
 
 /// TODO

@@ -16,11 +16,40 @@ pub fn main() {
                 println!("{:#?}", parsed_data);
                 return;
             }
-            _ => {}
+            "build" => {
+                build(&mut args);
+            }
+            _ => todo!()
         }
-        todo!();
     }
     else {
         println!("No arguments passed. Try `beach help` for more info.");
+    }
+}
+
+fn build(args: &mut std::env::Args) {
+    // TODO: no unwrap!
+    let calling_dir = std::env::current_dir().unwrap();
+    // Seach for a `main.beach` file.
+    let mut main_file = calling_dir.clone();
+    main_file.push("main.beach");
+    // TOCTOU ok here
+    if let Ok(exists) = main_file.try_exists() {
+        if exists {
+            if let Ok(data) = std::fs::read_to_string(main_file) {
+                // TODO: build
+                println!("👓 Parsing file...");
+                let parsed_data = crate::parser::beach::parse_string_file(data);
+            }
+            else {
+                println!("`main.beach` is not valid UTF-8 or otherwise could not be read.");
+            }
+        }
+        else {
+            println!("`main.beach` not found. Check your directory and try again.");
+        }
+    }
+    else {
+        println!("Unable to find or access `main.beach`. Check directory permissions and try again.");
     }
 }
