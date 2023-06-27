@@ -12,3 +12,7 @@ pub fn read<R: std::io::Read>(reader: &mut R) -> lst::SyntaxRoot {
 pub fn parse_string_file(file: String) -> lst::SyntaxRoot {
     lst::SyntaxRoot::from_string(file)
 }
+
+pub fn abstract_syntax(syntax: lst::SyntaxRoot) -> ast::Program {
+    ast::Program::from_lst(syntax)
+}

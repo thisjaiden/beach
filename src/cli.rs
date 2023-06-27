@@ -14,6 +14,9 @@ pub fn main() {
                 let data = std::fs::read_to_string(target_dir).unwrap();
                 let parsed_data = crate::parser::beach::parse_string_file(data);
                 println!("{:#?}", parsed_data);
+                println!("ABSTRACTING...");
+                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data);
+                println!("{:#?}", abstract_data);
                 return;
             }
             "build" => {

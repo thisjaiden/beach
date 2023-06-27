@@ -147,7 +147,7 @@ impl StringReader {
 }
 
 /// TODO
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Bigint {
     sign: bool,
     // later in the array is bigger
@@ -201,13 +201,13 @@ fn highest_bit(input: u8) -> usize {
 }
 
 /// TODO
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Bigfloat {
 
 }
 
 /// TODO
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Bigcplx {
 
 }

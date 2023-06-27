@@ -1,23 +1,30 @@
 use crate::utils::*;
 
-mod keywords;
+pub mod keywords;
 
 use self::keywords::*;
 
 #[derive(Debug)]
 pub struct SyntaxRoot {
-    pub symbols: Vec<Symbol>
+    pub symbols: Vec<Symbol>,
+    // tracks line nums, etc.
+    pub annotations: Vec<Annotation>
 }
 
 impl SyntaxRoot {
     pub fn from_string(from: String) -> SyntaxRoot {
         let mut reader = StringReader::from_string(from);
         let symbols = Symbol::read_all_symbols(&mut reader);
-        SyntaxRoot { symbols }
+        SyntaxRoot { symbols, annotations: vec![] }
     }
 }
 
 #[derive(Debug)]
+pub struct Annotation {
+    // TODO
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Symbol {
     Comment(String), //        //ARG
     Comments(String), //       /*ARG*/
@@ -58,6 +65,7 @@ pub enum Symbol {
     LessThanOrEqual, //        <=
     MoreThanOrEqual, //        >=
     Also, //                   ,
+    Compiler, //               !!
     String(String), //         "ARG"
     Keyword(Keyword), //       ARG
     Integer(Bigint), //        ARG
@@ -102,6 +110,10 @@ impl Symbol {
                 if second_char == Some('=') {
                     reader.read_char();
                     return Some(Symbol::DoesNotEqual);
+                }
+                else if second_char == Some('!') {
+                    reader.read_char();
+                    return Some(Symbol::Compiler);
                 }
                 else {
                     return Some(Symbol::LogicNot);
