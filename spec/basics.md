@@ -3,8 +3,8 @@
 ## aliasing
 
 ```beach
-function_to_alias => aliased_name
-function_to_alias_externally =>! aliased_name
+function_to_alias => aliased_name;
+function_to_alias_externally =>! aliased_name;
 ```
 
 Creates an alias in this file. Adding an ! to the end of the alias symbol exports this alias to other files importing this one.
@@ -14,10 +14,11 @@ Creates an alias in this file. Adding an ! to the end of the alias symbol export
 ```beach
 main {
     // Code here!
+    return;
 };
 ```
 
-The first thing to run in your program. A type of function with no arguments in and no return value out.
+The first thing to run in your program. A type of function with no arguments in and no return value out. Special consideration: the main block may return `nothing` *or* `never`. No need to clarify which, but one must be returned.
 
 ## comments
 
@@ -61,6 +62,24 @@ import file_name;
 import library_name~1.2.3;
 // Imports a library with a different top level name
 import library_name~1.2.3 => namespace_alias;
+```
+
+## namespaces
+
+```beach
+/// main.beach
+// Imports all global items of a under the `a~` prefix
+import a;
+// a -> b -> foo: follow the chain and add `~`s
+a~b~foo(5, 10);
+
+/// a.beach
+// Imports all global items of b under the `b~` prefix, but also reexports these items
+import b;
+
+/// a/b.beach
+// generic function
+var foo = |a: integer, b: integer| -> nothing { ... }
 ```
 
 ## typecasting

@@ -49,10 +49,49 @@ impl Program {
                                 }
                             }
                         }
+                        Keyword::main => {
+                            todo!()
+                        }
                         _ => todo!()
                     }
                 }
-                _ => todo!()
+                Symbol::Label(l) => {
+                    // Running a function if we find OpenParenthesis, PhraseEnd
+                    if let Some(&&Symbol::OpenParenthesis) = syms.peek() {
+                        todo!("NOT DONE");
+                        // OpenParenthesis found
+                        syms.next();
+                        // we should expected a comma seperated list of `Value`s now, ending with CloseParenthesis, PhraseEnd
+                        let mut arguments = vec![];
+                        while syms.peek() != Some(&&Symbol::Closeparenthesis) {
+                            // TODO
+                            // ...
+                        }
+                        program.global_tasks.push(Task::Call { label: l.to_string(), arguments });
+                    }
+                    // Creating an alias if we find Alias, PhraseEnd
+                    if let Some(&&Symbol::Alias) = syms.peek() {
+                        // Alias found
+                        syms.next();
+                        // check for Label(_)
+                        if let Some(&&Symbol::Label(ref outlabel)) = syms.peek() {
+                            syms.next();
+                            // check for PhraseEnd
+                            if let Some(&&Symbol::PhraseEnd) = syms.peek() {
+                                // PhraseEnd found! Statement complete!
+                                syms.next();
+                                program.definitions.push(Definition::Alias { label: l.clone(), points_to: outlabel.to_string() });
+                            }
+                            else {
+                                panic!("Expected `;` following an alias statement. ({{TODO: ANNOTATIONS}})");
+                            }
+                        }
+                        else {
+                            panic!("Expected a label following the alias operator `=>`. ({{TODO: ANNOTATIONS}})");
+                        }
+                    }
+                }
+                k => todo!("{:?}", k)
             }
         }
         todo!()
@@ -72,6 +111,12 @@ pub enum Definition {
 pub enum Task {
     Set { label: String, type_: Option<String>, value: Value },
     Call { label: String, arguments: Vec<Value> },
+}
+
+#[derive(Debug)]
+pub enum Evaluatable {
+    Call { label: String, arguments: Vec<Value> },
+    Math { a: Value, b: Value }
 }
 
 #[derive(Debug)]
