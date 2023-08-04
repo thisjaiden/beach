@@ -12,4 +12,6 @@ main {
     print("Hello world!");
     // Keep the console open, if possible.
     keep_console_open;
+    // End program given keep_console_open isn't avalable
+    return;
 };

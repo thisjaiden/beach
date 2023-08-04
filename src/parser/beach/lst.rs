@@ -39,7 +39,7 @@ pub enum Symbol {
     ExportedAlias, //          =>!
     Becomes, //                ->
     Parent, //                 <-
-    Specification, //          ~
+    Module, //                 ~
     PhraseEnd, //              ;
     Is, //                     :
     Set, //                    =
@@ -65,6 +65,8 @@ pub enum Symbol {
     LessThanOrEqual, //        <=
     MoreThanOrEqual, //        >=
     Also, //                   ,
+    LeftShift, //              <<
+    RightShift, //             >>
     Compiler, //               !!
     String(String), //         "ARG"
     Keyword(Keyword), //       ARG
@@ -76,7 +78,7 @@ pub enum Symbol {
 
 // The following characters *cannot* appear in labels.
 pub const RESERVED_LABEL_SYMBOLS: &[char] = &[
-    ';', ',', ':', '(', ')', '[', ']' // TODO: rest of the symbols that should go here
+    ';', ',', ':', '(', ')', '[', ']', '~' // TODO: rest of the symbols that should go here
 ];
 
 impl Symbol {
@@ -95,7 +97,7 @@ impl Symbol {
         match first_char {
             // Exclusive one char symbols
             ';' => return Some(Symbol::PhraseEnd),
-            '~' => return Some(Symbol::Specification),
+            '~' => return Some(Symbol::Module),
             '+' => return Some(Symbol::Add),
             '%' => return Some(Symbol::Modulo),
             ':' => return Some(Symbol::Is),
@@ -230,6 +232,10 @@ impl Symbol {
                     reader.read_char();
                     return Some(Symbol::LessThanOrEqual);
                 }
+                else if second_char == Some('<') {
+                    reader.read_char();
+                    return Some(Symbol::LeftShift);
+                }
                 else {
                     return Some(Symbol::LessThan);
                 }
@@ -238,6 +244,10 @@ impl Symbol {
                 if second_char == Some('=') {
                     reader.read_char();
                     return Some(Symbol::MoreThanOrEqual);
+                }
+                else if second_char == Some('>') {
+                    reader.read_char();
+                    return Some(Symbol::RightShift);
                 }
                 else {
                     return Some(Symbol::MoreThan);

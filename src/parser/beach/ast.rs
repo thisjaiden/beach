@@ -1,3 +1,5 @@
+use std::iter::Peekable;
+
 use crate::{utils::*, parser::beach::lst::{Symbol, keywords::Keyword}};
 
 #[derive(Debug)]
@@ -50,7 +52,13 @@ impl Program {
                             }
                         }
                         Keyword::main => {
-                            todo!()
+                            if Some(&&Symbol::OpenBrace) == syms.peek() {
+                                syms.next();
+                                program.main_scope(&mut syms);
+                            }
+                            else {
+                                panic!("Expected `{{` following keyword `main`. ({{TODO: ANNOTATIONS}})");
+                            }
                         }
                         _ => todo!()
                     }
@@ -76,6 +84,19 @@ impl Program {
                         // check for Label(_)
                         if let Some(&&Symbol::Label(ref outlabel)) = syms.peek() {
                             syms.next();
+                            // while we find the Module symbol, dump the following Label(_) into a vec
+                            let mut out_lab_with_refs = vec![];
+                            out_lab_with_refs.push(outlabel.to_string());
+                            while Some(&&Symbol::Module) == syms.peek() {
+                                syms.next();
+                                if let Some(&&Symbol::Label(ref suboutlabel)) = syms.peek() {
+                                    syms.next();
+                                    out_lab_with_refs.push(suboutlabel.to_string());
+                                }
+                                else {
+                                    panic!("Expected a label following a module seperator `~` in an alias statement. ({{TODO ANNOTATIONS}})");
+                                }
+                            }
                             // check for PhraseEnd
                             if let Some(&&Symbol::PhraseEnd) = syms.peek() {
                                 // PhraseEnd found! Statement complete!
@@ -95,6 +116,16 @@ impl Program {
             }
         }
         todo!()
+    }
+    fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>)
+    where
+        I: Iterator<Item = &'a Symbol> {
+        while syms.peek().is_some() {
+            match syms.next().unwrap() {
+                Symbol::Comment(_) | Symbol::Comments(_) => {},
+                _ => { todo!() }
+            }
+        }
     }
 }
 
@@ -126,5 +157,5 @@ pub enum Value {
     Complex(Bigcplx),
     String(String),
     Bool(bool),
-    Label(String),
+    Label(Vec<String>),
 }
