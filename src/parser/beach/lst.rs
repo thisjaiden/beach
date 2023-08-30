@@ -33,7 +33,7 @@ pub enum Symbol {
     OpenBracket, //            [
     CloseBracket, //           ]
     OpenParenthesis, //        (
-    Closeparenthesis, //       )
+    CloseParenthesis, //       )
     Closure(Vec<Symbol>), //   |ARGS|
     Alias, //                  =>
     ExportedAlias, //          =>!
@@ -106,7 +106,7 @@ impl Symbol {
             '[' => return Some(Symbol::OpenBracket),
             ']' => return Some(Symbol::CloseBracket),
             '(' => return Some(Symbol::OpenParenthesis),
-            ')' => return Some(Symbol::Closeparenthesis),
+            ')' => return Some(Symbol::CloseParenthesis),
             ',' => return Some(Symbol::Also),
             '!' => {
                 if second_char == Some('=') {

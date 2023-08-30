@@ -77,7 +77,7 @@ let weird_function = |nothing| -> nothing { ... };
 
 - All functions must return from every branch. If the function is a void function this is done with a simple `return` keyword.
   - As an exception to the previous rule, if a function *never* returns, it may have the `never` return type. These functions *may not* return, under *any* circumstance.
-- Calling a function with no arguments may be done without including the parentheses after the funciton name.
+- Calling a function with no arguments may be done without including the parentheses after the function name, given it is called on its own line.
 - Functions can be declared in any scope. The exception is mutable functions, which must be declared locally.
 
 ## Scope
@@ -96,10 +96,10 @@ Variables in Global scope *must* be constant.
 
 |type     |members                      |usage          |operators               |
 |---------|-----------------------------|---------------|------------------------|
-|integer  |u/i8;16;32;64;128;256, bigint|whole numbers  |+,-,/,*,**,==,!=,&,|,^,%|
+|integer  |u/i8;16;32;64;128;256, bigint|integer numbers  |+,-,/,*,**,==,!=,&,|,^,%|
 |number   |f32;64, bigfloat, fraction   |real numbers   |+,-,/,*,**,=~,!~,%      |
 |complex  |c64;128, bigcplx             |complex numbers|+,-,*,**,=~,!~          |<!-- more operators should be possible here, look into this -->
-|printable|string, str, char            |text           |+,==,!=                 |
+|printable|string, mutstring, char            |text           |+,==,!=                 |
 |...      |...                          |...            |...                     |
 |nothing  |N/A                          |void fns       |                        |
 |never    |N/A                          |divergent fns  |                        |

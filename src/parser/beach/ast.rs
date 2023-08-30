@@ -71,9 +71,10 @@ impl Program {
                         syms.next();
                         // we should expected a comma seperated list of `Value`s now, ending with CloseParenthesis, PhraseEnd
                         let mut arguments = vec![];
-                        while syms.peek() != Some(&&Symbol::Closeparenthesis) {
+                        while syms.peek() != Some(&&Symbol::CloseParenthesis) {
                             // TODO
                             // ...
+                            todo!();
                         }
                         program.global_tasks.push(Task::Call { label: l.to_string(), arguments });
                     }
@@ -101,7 +102,7 @@ impl Program {
                             if let Some(&&Symbol::PhraseEnd) = syms.peek() {
                                 // PhraseEnd found! Statement complete!
                                 syms.next();
-                                program.definitions.push(Definition::Alias { label: l.clone(), points_to: outlabel.to_string() });
+                                program.definitions.push(Definition::Alias { label: l.clone(), points_to: out_lab_with_refs.clone() });
                             }
                             else {
                                 panic!("Expected `;` following an alias statement. ({{TODO: ANNOTATIONS}})");
@@ -115,6 +116,7 @@ impl Program {
                 k => todo!("{:?}", k)
             }
         }
+        println!("PROGRAM:\n{:#?}", program);
         todo!()
     }
     fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>)
@@ -123,7 +125,81 @@ impl Program {
         while syms.peek().is_some() {
             match syms.next().unwrap() {
                 Symbol::Comment(_) | Symbol::Comments(_) => {},
-                _ => { todo!() }
+                Symbol::Label(l) => {
+                    match syms.peek() {
+                        Some(Symbol::OpenParenthesis) => {
+                            // This is a function call!
+                            // throw away open parrens
+                            syms.next();
+                            // we should expected a comma seperated list of `Evaluatable`s now,
+                            // ending with CloseParenthesis, PhraseEnd
+                            let mut eval_idx = 0;
+                            while syms.peek() != Some(&&Symbol::CloseParenthesis) {
+                                // TODO: recursive function calls could have collisions...
+                                // TODO: doc this weird shit or improve it
+                                self.main_tasks.push(Task::Evaluate {
+                                    label: format!("compiler_ast_call_eval_{}", eval_idx),
+                                    task: Evaluatable::from_symbols(syms, Symbol::Also)
+                                });
+                                eval_idx += 1;
+                            }
+                            // throw away close parrens
+                            syms.next();
+                            // last sym should be PhraseEnd
+                            if syms.peek() != Some(&&Symbol::PhraseEnd) {
+                                // if it's not, panic
+                                panic!("Expected `;` following a function call.");
+                            }
+                            // throw away PhraseEnd
+                            syms.next();
+                            let mut arguments = vec![];
+                            for i in 0..eval_idx {
+                                arguments.push(Value::Label(format!("compiler_ast_call_eval_{i}")));
+                            }
+                            self.main_tasks.push(Task::Call { label: l.clone(), arguments });
+                            for i in 0..eval_idx {
+                                self.main_tasks.push(
+                                    Task::FreeEvaluated {
+                                        label: format!("compiler_ast_call_eval_{i}")
+                                    }
+                                );
+                            }
+                        }
+                        Some(Symbol::PhraseEnd) => {
+                            // This is a no-argument function call.
+                            // throw away phrase end
+                            syms.next();
+                            // add to tasks
+                            self.main_tasks.push(Task::Call {
+                                label: l.clone(),
+                                arguments: vec![]
+                            });
+                        }
+                        Some(sym) => { todo!("TODO ICE Label(_) -> sym ({:?})", sym) }
+                        None => { panic!("Abrupt EOF before closing the `main` segment, and before terminating a line.") }
+                    }
+                }
+                Symbol::CloseBrace => {
+                    // end of main block
+                    return;
+                }
+                Symbol::Keyword(sym_kywrd) => {
+                    match sym_kywrd {
+                        Keyword::k_return => {
+                            // return from main
+                            // TODO: may not work inside deeper blocks
+                            // should be followed by a PhraseEnd
+                            if syms.peek() != Some(&&Symbol::PhraseEnd) {
+                                panic!("Expected `;` following keyword `return`.");
+                            }
+                            // throw away PhraseEnd
+                            syms.next();
+                            self.main_tasks.push(Task::ExitBlock);
+                        }
+                        _ => todo!()
+                    }
+                }
+                sym => { todo!("TODO ICE sym ({:?})", sym) }
             }
         }
     }
@@ -133,7 +209,7 @@ impl Program {
 pub enum Definition {
     Wants { label: String },
     Needs { label: String },
-    Alias { label: String, points_to: String },
+    Alias { label: String, points_to: Vec<String> },
     GlobalConstant { label: String, value: Value },
     Function { label: String, tasks: Vec<Task> },
 }
@@ -142,12 +218,30 @@ pub enum Definition {
 pub enum Task {
     Set { label: String, type_: Option<String>, value: Value },
     Call { label: String, arguments: Vec<Value> },
+    Evaluate { label: String, task: Evaluatable },
+    FreeEvaluated { label: String },
+    ExitBlock,
 }
 
 #[derive(Debug)]
 pub enum Evaluatable {
     Call { label: String, arguments: Vec<Value> },
-    Math { a: Value, b: Value }
+    Math { a: Value, b: Value },
+    Value { value: Value }
+}
+
+impl Evaluatable {
+    fn from_symbols<'a, I>(syms: &mut Peekable<I>, end: Symbol) -> Self
+    where
+        I: Iterator<Item = &'a Symbol> {
+        match syms.next().expect("Called with null sym, should be impossible") {
+            Symbol::String(symstr) => {
+                return Self::Value { value: Value::String(symstr.clone()) }
+            }
+            sym => todo!("evaluatble from_symbols sym ({:?})", sym)
+        }
+        todo!();
+    }
 }
 
 #[derive(Debug)]
@@ -157,5 +251,5 @@ pub enum Value {
     Complex(Bigcplx),
     String(String),
     Bool(bool),
-    Label(Vec<String>),
+    Label(String),
 }

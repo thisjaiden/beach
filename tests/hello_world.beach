@@ -14,4 +14,4 @@ main {
     keep_console_open;
     // End program given keep_console_open isn't avalable
     return;
-};
+}
