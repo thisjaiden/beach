@@ -10,7 +10,7 @@ Beach is in a very early state and is not ready to be used in production code.
 
 TODO
 
-## Example
+## Examples
 
 ### Code
 

@@ -12,22 +12,29 @@ pub fn main() {
                 use std::str::FromStr;
                 let target_dir = std::path::PathBuf::from_str("/Users/thisjaiden/Desktop/beach/tests/hello_world.beach").unwrap();
                 let data = std::fs::read_to_string(target_dir).unwrap();
+                println!("Parsing...");
                 let parsed_data = crate::parser::beach::parse_string_file(data);
                 println!("{:#?}", parsed_data);
-                println!("ABSTRACTING...");
+                println!("Abstracting...");
                 let abstract_data = crate::parser::beach::abstract_syntax(parsed_data);
                 println!("{:#?}", abstract_data);
+                println!("Generating IR...");
+                let ir_data = crate::parser::beach::intermediate_representation(abstract_data);
                 return;
             }
-            "build" => {
-                build(&mut args);
-            }
+            "build" => build(&mut args),
+            "help" => help(&mut args),
             _ => todo!()
         }
     }
     else {
         println!("No arguments passed. Try `beach help` for more info.");
     }
+}
+
+fn help(args: &mut std::env::Args) {
+    // TODO: read args for more specific help
+    println!("TODO HELP FILE");
 }
 
 fn build(args: &mut std::env::Args) {

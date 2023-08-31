@@ -10,7 +10,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn from_lst(lst: super::lst::SyntaxRoot) -> Program {
+    pub fn from_lst(lst: super::lst::Syntax) -> Program {
         let mut program = Program { definitions: vec![], global_tasks: vec![], main_tasks: vec![] };
         let mut syms = lst.symbols.iter().peekable();
         // TODO: split this into several functions for basic context and structure
@@ -116,8 +116,7 @@ impl Program {
                 k => todo!("{:?}", k)
             }
         }
-        println!("PROGRAM:\n{:#?}", program);
-        todo!()
+        program
     }
     fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>)
     where

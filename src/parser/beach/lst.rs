@@ -5,17 +5,17 @@ pub mod keywords;
 use self::keywords::*;
 
 #[derive(Debug)]
-pub struct SyntaxRoot {
+pub struct Syntax {
     pub symbols: Vec<Symbol>,
     // tracks line nums, etc.
     pub annotations: Vec<Annotation>
 }
 
-impl SyntaxRoot {
-    pub fn from_string(from: String) -> SyntaxRoot {
+impl Syntax {
+    pub fn from_string(from: String) -> Syntax {
         let mut reader = StringReader::from_string(from);
         let symbols = Symbol::read_all_symbols(&mut reader);
-        SyntaxRoot { symbols, annotations: vec![] }
+        Syntax { symbols, annotations: vec![] }
     }
 }
 
@@ -279,10 +279,10 @@ impl Symbol {
         return Some(Symbol::Label(peaked_word));
     }
     pub fn read_all_symbols(reader: &mut StringReader) -> Vec<Symbol> {
-        println!("Reading all symbols!");
+        //println!("Reading all symbols!");
         let mut symbols = vec![];
         while let Some(symbol) = Symbol::next(reader) {
-            println!("Symbol::{:?}", symbol);
+            //println!("Symbol::{:?}", symbol);
             symbols.push(symbol);
         }
         symbols
