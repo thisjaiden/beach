@@ -4,7 +4,7 @@ Beach is an open-source programming language built to make creating multi-platfo
 
 ## State of the Language
 
-Beach is in a very early state and is not ready to be used in production code.
+Beach is in a very early state and is not ready to be used in any development.
 
 ## Installing
 

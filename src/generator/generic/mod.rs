@@ -19,6 +19,8 @@ pub trait AssemblyGenerator {
     /// Sets `location` equal to `value`.
     fn set(location: Data, value: Data) -> String;
     const EXTENSIONS: Vec<Extension>;
+    const EXTENSION_PERFORMANCE_ORDER: Vec<Extension>;
+    const EXTENSION_SIZE_ORDER: Vec<Extension>;
 }
 
 pub enum Extension {

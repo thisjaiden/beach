@@ -1,7 +1,7 @@
-mod assembler;
+mod packager;
 mod parser;
 mod utils;
-mod generation;
+mod generator;
 mod cli;
 
 fn main() {

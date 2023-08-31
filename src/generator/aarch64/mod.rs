@@ -69,4 +69,10 @@ impl generic::AssemblyGenerator for AssemblyGenerator {
     const EXTENSIONS: Vec<generic::Extension> = vec![
         // TODO: extensions
     ];
+    const EXTENSION_PERFORMANCE_ORDER: Vec<generic::Extension> = vec![
+        // TODO: ext perf order
+    ];
+    const EXTENSION_SIZE_ORDER: Vec<generic::Extension> = vec![
+        // TODO: ext size order
+    ];
 }

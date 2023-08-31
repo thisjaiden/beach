@@ -1,6 +1,7 @@
-// Narrows platforms by support, preventing compile time errors
+// Narrows platforms by support for stdout
 needs stdout;
-// Indicates that the platform should not error if it does not have keep_console_open
+// Indicates that the platform should not error if it does not have
+// keep_console_open, but that we'd like to use it if avalable.
 wants keep_console_open;
 
 // Creates an alias: print refers to platform~stdout
@@ -12,6 +13,6 @@ main {
     print("Hello world!");
     // Keep the console open, if possible.
     keep_console_open;
-    // End program given keep_console_open isn't avalable
+    // End the program given keep_console_open isn't avalable
     return;
 }

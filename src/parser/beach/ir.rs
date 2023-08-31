@@ -1,12 +1,14 @@
 #[derive(Debug)]
 pub struct Executable {
-    data: Vec<Data>
+    data: Vec<Data>,
+    code_sections: Vec<Code>
 }
 
 impl Executable {
     fn empty() -> Self {
         Executable {
-            data: vec![]
+            data: vec![],
+            code_sections: vec![]
         }
     }
     pub fn from_ast(ast: super::ast::Program) -> Self {
@@ -14,6 +16,11 @@ impl Executable {
         todo!();
         program
     }
+}
+
+#[derive(Debug)]
+pub struct Code {
+    // TODO
 }
 
 #[derive(Debug)]
