@@ -55,3 +55,23 @@ beach 🏖️ v0.0.0
 ...
 ☑️ Built for 37 targets in 2:38.47
 ```
+
+Seriously, it's that easy. No installing alternate target packages, no required host platforms,
+nothing. Just `beach build` and let beach figure out what platforms your code could work on.
+
+### Interpreter
+
+Yes, it comes with an interpreter too!
+
+```terminal
+> beach live
+beach 🏖️ v0.0.0
+READY
+B> let a = 4;
+B> needs stdout;
+B> print(a -> string);
+4
+B> 
+```
+
+It's not meant for production, and it can't do everything, but it's there!

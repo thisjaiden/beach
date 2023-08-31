@@ -33,16 +33,18 @@ The first thing to run in your program. A type of function with no arguments in 
 
 ```beach
 // Implied type from context. Usually the smallest type that functions.
-var name = value;
+let name = value;
 // To specifiy type used.
-var name: type = value;
+let name: type = value;
+// To create a mutable variable
+let mut name = value;
 ```
 
 ## logical operations
 
 ```beach
-var a = true;
-var b = false;
+let a = true;
+let b = false;
 
 a == b  // False (IS)
 a != b  // True  (IS NOT)
@@ -79,7 +81,19 @@ import b;
 
 /// a/b.beach
 // generic function
-var foo = |a: integer, b: integer| -> nothing { ... }
+let foo = |a: integer, b: integer| -> nothing { ... }
+```
+
+## glob imports
+
+```beach
+/// main.beach
+import a~~
+// Valid since all items under foo were imported to this namespace
+bar;
+
+/// foo.beach
+let bar = |nothing| -> nothing { ... }
 ```
 
 ## typecasting
@@ -102,4 +116,43 @@ a ** b // Power
 a & b //  Bitwise AND
 a | b //  Bitwise OR
 a ^ b //  Bitwise XOR
+```
+
+## functions
+
+```beach
+// all functions are variables.
+let add_two_numbers = |a: number, b:number| -> number {
+    return a + b;
+}
+
+// functions that do not take inputs must be written so:
+let the_number_five = |nothing| -> number {
+    return 5;
+}
+
+// functions that do not return a value must be written so:
+let i_do_nothing = |nothing| -> nothing {
+    return;
+}
+
+/*
+ * Other notes:
+ * - All functions must return from all branches
+ * - As functions are variables, they can only be mutable in non-global scope
+ */
+```
+
+## conditionals
+
+```beach
+if a == b {
+    // runs if condition is met
+}
+else if a < b {
+    // runs if all previous conditions are not met, and this condition is
+}
+else {
+    // runs if all previous conditions are not met
+}
 ```

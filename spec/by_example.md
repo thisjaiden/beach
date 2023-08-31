@@ -33,10 +33,14 @@ wants keep_console_open;
 print => platform~stdout;
 
 main {
+    // Creates two numeric values
     let x = 5;
     let y = 10;
+    // Multiplies them together
     let z = x * y;
 
+    // Numbers can always be displayed in a string.
+    // By default, they are displayed in base 10.
     print(z -> string);
 
     keep_console_open;
@@ -54,6 +58,10 @@ wants keep_console_open;
 print => platform~stdout;
 
 main {
+    let x = 5;
+    let y = 10;
+    // note that since multiply takes in two integer types,
+    // x and y are assigned the integer type by default.
     let z = multiply(x, y);
     print(z -> string);
     keep_console_open;
@@ -94,12 +102,14 @@ Variables in Global scope *must* be constant.
 
 ## General Types
 
+Using one of these types garuntees certain functionality and compatibility with member types. Note that the actual underlying type is determined automatically, and may not be the best one for your use case. These are best used as function arguments, not as variable types.
+
 |type     |members                      |usage          |operators               |
 |---------|-----------------------------|---------------|------------------------|
-|integer  |u/i8;16;32;64;128;256, bigint|integer numbers  |+,-,/,*,**,==,!=,&,|,^,%|
+|integer  |u/i8;16;32;64;128;256, bigint|integer numbers|+,-,/,*,**,==,!=,&,|,^,%|
 |number   |f32;64, bigfloat, fraction   |real numbers   |+,-,/,*,**,=~,!~,%      |
 |complex  |c64;128, bigcplx             |complex numbers|+,-,*,**,=~,!~          |<!-- more operators should be possible here, look into this -->
-|printable|string, mutstring, char            |text           |+,==,!=                 |
+|printable|string, mutstring, char      |text           |+,==,!=                 |
 |...      |...                          |...            |...                     |
 |nothing  |N/A                          |void fns       |                        |
 |never    |N/A                          |divergent fns  |                        |
