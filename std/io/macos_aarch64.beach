@@ -1,0 +1,16 @@
+!!export_all
+
+var stdout = |output: string| -> nothing {
+    // syscalls and `string.ptr()` are unsafe. This function is infallible and
+    // safe, unless the kernel fails.
+    unsafe {
+        // We can directly use the underlying pointer for any given `string`
+        // since this syscall copies data out and does not modify or invalidate
+        // the original data.
+        let rv: isize = !!syscall(4, 1, string.ptr(), string.size_bytes());
+        if rv == -1 {
+            // TODO: something to handle stdout failure
+        }
+    }
+    return;
+};

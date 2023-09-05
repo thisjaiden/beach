@@ -1,11 +1,11 @@
 // Narrows platforms by support for stdout
-needs stdout;
+needs std~platform~stdout;
 // Indicates that the platform should not error if it does not have
 // keep_console_open, but that we'd like to use it if avalable.
 wants keep_console_open;
 
 // Creates an alias: print refers to platform~stdout
-print => platform~stdout;
+print => std~platform~stdout;
 
 // Runs on program start
 main {

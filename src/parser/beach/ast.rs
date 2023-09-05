@@ -4,9 +4,9 @@ use crate::{utils::*, parser::beach::lst::{Symbol, keywords::Keyword}};
 
 #[derive(Debug)]
 pub struct Program {
-    definitions: Vec<Definition>,
-    global_tasks: Vec<Task>,
-    main_tasks: Vec<Task>,
+    pub definitions: Vec<Definition>,
+    pub global_tasks: Vec<Task>,
+    pub main_tasks: Vec<Task>,
 }
 
 impl Program {
