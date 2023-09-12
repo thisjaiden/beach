@@ -1,4 +1,4 @@
 !!export_all;
 /// Standard functions that depend highly on the platform targeted.
 
-wants io~~;
+file io~~;

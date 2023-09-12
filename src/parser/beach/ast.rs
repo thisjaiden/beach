@@ -19,7 +19,7 @@ impl Program {
                 Symbol::Comment(_) | Symbol::Comments(_) => {}
                 Symbol::Keyword(kwrd) => {
                     match kwrd {
-                        Keyword::needs => {
+                        Keyword::system => {
                             // expects Label(_), PhraseEnd
                             if let Some(&&Symbol::Label(ref label)) = syms.peek() {
                                 // Label(_) found
@@ -28,26 +28,10 @@ impl Program {
                                 if let Some(&&Symbol::PhraseEnd) = syms.peek() {
                                     // PhraseEnd found! Statement complete!
                                     syms.next();
-                                    program.definitions.push(Definition::Needs { label: label.clone() });
+                                    program.definitions.push(Definition::System { label: label.clone() });
                                 }
                                 else {
                                     panic!("Expected `;` following `needs {}`. ({{TODO: ANNOTATIONS}})", label);
-                                }
-                            }
-                        }
-                        Keyword::wants => {
-                            // expects Label(_), PhraseEnd
-                            if let Some(&&Symbol::Label(ref label)) = syms.peek() {
-                                // Label(_) found
-                                syms.next();
-                                // check for PhraseEnd
-                                if let Some(&&Symbol::PhraseEnd) = syms.peek() {
-                                    // PhraseEnd found! Statement complete!
-                                    syms.next();
-                                    program.definitions.push(Definition::Wants { label: label.clone() });
-                                }
-                                else {
-                                    panic!("Expected `;` following `wants {}`. ({{TODO: ANNOTATIONS}})", label);
                                 }
                             }
                         }
@@ -206,8 +190,7 @@ impl Program {
 
 #[derive(Debug)]
 pub enum Definition {
-    Wants { label: String },
-    Needs { label: String },
+    System { label: String },
     Alias { label: String, points_to: Vec<String> },
     GlobalConstant { label: String, value: Value },
     Function { label: String, tasks: Vec<Task> },

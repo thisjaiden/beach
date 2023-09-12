@@ -1,2 +1,2 @@
-mod aarch64;
+pub mod aarch64;
 pub mod generic;

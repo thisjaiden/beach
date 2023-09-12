@@ -1,21 +1,20 @@
 pub const KEYWORDS: &[&str] = &[
-    "needs", "main", "disable", "wants", "var",
-    "return",
+    "system", "main", "disable", "let", "return",
+    "file",
 ];
 
 pub const KEYWORDS_TYPED: &[Keyword] = &[
-    Keyword::needs, Keyword::main, Keyword::disable, Keyword::wants, Keyword::var,
-    Keyword::k_return,
+    Keyword::system, Keyword::main, Keyword::disable, Keyword::k_let, Keyword::k_return,
+    Keyword::file,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Keyword {
     main,
     disable,
-    wants,
-    needs,
+    system,
     k_pub,
-    var,
+    k_let,
     file,
     k_for,
     k_return,

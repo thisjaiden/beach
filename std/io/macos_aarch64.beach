@@ -1,4 +1,4 @@
-!!export_all
+!!export_all;
 
 var stdout = |output: string| -> nothing {
     // syscalls and `string.ptr()` are unsafe. This function is infallible and

@@ -1,8 +1,8 @@
 use super::generic;
 
-struct AssemblyGenerator;
+pub struct AArch64AssemblyGenerator;
 
-impl generic::AssemblyGenerator for AssemblyGenerator {
+impl generic::AssemblyGenerator for AArch64AssemblyGenerator {
     const POINTER_WIDTH: u8 = 8;
     const REGISTER_WIDTH: u8 = 8;
     const INSTRUCTION_WIDTH: u8 = 4;
@@ -64,6 +64,10 @@ impl generic::AssemblyGenerator for AssemblyGenerator {
 
     fn set(location: generic::Data, value: generic::Data) -> String {
         todo!()
+    }
+    
+    fn new() -> Self {
+        Self {}
     }
 
     const EXTENSIONS: Vec<generic::Extension> = vec![

@@ -1,18 +1,14 @@
 // Narrows platforms by support for stdout
-needs std~platform~stdout;
-// Indicates that the platform should not error if it does not have
-// keep_console_open, but that we'd like to use it if avalable.
-wants keep_console_open;
+system stdout;
 
-// Creates an alias: print refers to platform~stdout
-print => std~platform~stdout;
+// Creates an alias: print refers to stdout
+print => stdout;
 
 // Runs on program start
 main {
-    // Print "Hello world!" to stdout
+    // Print "Hello world!" to stdout (usually a console of some sort)
     print("Hello world!");
-    // Keep the console open, if possible.
-    keep_console_open;
-    // End the program given keep_console_open isn't avalable
+
+    // End the program
     return;
 }

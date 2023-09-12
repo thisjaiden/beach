@@ -1,5 +1,5 @@
-!!export_all
+!!export_all;
 
 platform macos_aarch64 {
-    wants macos_aarch64~~;
+    file macos_aarch64~~;
 }

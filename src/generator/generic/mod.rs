@@ -18,6 +18,8 @@ pub trait AssemblyGenerator {
     fn add(value: Data, to: Data) -> String;
     /// Sets `location` equal to `value`.
     fn set(location: Data, value: Data) -> String;
+    /// Creates a fresh generator.
+    fn new() -> Self;
     const EXTENSIONS: Vec<Extension>;
     const EXTENSION_PERFORMANCE_ORDER: Vec<Extension>;
     const EXTENSION_SIZE_ORDER: Vec<Extension>;
