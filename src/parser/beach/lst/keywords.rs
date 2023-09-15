@@ -1,21 +1,21 @@
 pub const KEYWORDS: &[&str] = &[
     "system", "main", "disable", "let", "return",
-    "file",
+    "file", "library", "for"
 ];
 
 pub const KEYWORDS_TYPED: &[Keyword] = &[
-    Keyword::system, Keyword::main, Keyword::disable, Keyword::k_let, Keyword::k_return,
-    Keyword::file,
+    Keyword::Ksystem, Keyword::Kmain, Keyword::Kdisable, Keyword::Klet, Keyword::Kreturn,
+    Keyword::Kfile, Keyword::Klibrary, Keyword::Kfor
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Keyword {
-    main,
-    disable,
-    system,
-    k_pub,
-    k_let,
-    file,
-    k_for,
-    k_return,
+    Kmain, // main loop
+    Kdisable, // disable contextual refrence or import
+    Ksystem, // std import
+    Klet, // variables
+    Kfile, // import project file
+    Klibrary, // import external library
+    Kfor, // for loops
+    Kreturn, // ...
 }

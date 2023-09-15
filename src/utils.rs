@@ -149,7 +149,8 @@ impl StringReader {
 /// TODO
 #[derive(Debug, PartialEq)]
 pub struct Bigint {
-    sign: bool,
+    /// true = number negative
+    pub sign: bool,
     // later in the array is bigger
     bytes: Vec<u8>
 }
@@ -183,6 +184,35 @@ impl Bigint {
                 sign: false,
                 bytes: vec![input as u8]
             }
+        }
+    }
+    pub fn to_u8(&self) -> Result<u8, anyhow::Error> {
+        if self.bit_width() <= 8 && !self.sign {
+            return Ok(self.bytes[0]);
+        }
+        else if !self.sign {
+            return Err(anyhow::Error::msg(
+                "Bigint too large to convert to u8 (> 255)"
+            ));
+        }
+        else {
+            return Err(anyhow::Error::msg(
+                "Bigint is negative, which can't be stored in a u8"
+            ));
+        }
+    }
+    pub fn to_i8(&self) -> Result<i8, anyhow::Error> {
+        if self.bit_width() <= 7 {
+            let mut as_i8 = self.bytes[0] as i8;
+            if self.sign {
+                as_i8 *= -1;
+            }
+            return Ok(as_i8);
+        }
+        else {
+            return Err(anyhow::Error::msg(
+                "Bigint too large to convert to i8 (> 127 or < -128)"
+            ));
         }
     }
     pub fn bit_width(&self) -> usize {

@@ -19,7 +19,7 @@ impl Program {
                 Symbol::Comment(_) | Symbol::Comments(_) => {}
                 Symbol::Keyword(kwrd) => {
                     match kwrd {
-                        Keyword::system => {
+                        Keyword::Ksystem => {
                             // expects Label(_), PhraseEnd
                             if let Some(&&Symbol::Label(ref label)) = syms.peek() {
                                 // Label(_) found
@@ -35,7 +35,7 @@ impl Program {
                                 }
                             }
                         }
-                        Keyword::main => {
+                        Keyword::Kmain => {
                             if Some(&&Symbol::OpenBrace) == syms.peek() {
                                 syms.next();
                                 program.main_scope(&mut syms);
@@ -168,7 +168,7 @@ impl Program {
                 }
                 Symbol::Keyword(sym_kywrd) => {
                     match sym_kywrd {
-                        Keyword::k_return => {
+                        Keyword::Kreturn => {
                             // return from main
                             // TODO: may not work inside deeper blocks
                             // should be followed by a PhraseEnd
