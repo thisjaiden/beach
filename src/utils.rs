@@ -147,7 +147,7 @@ impl StringReader {
 }
 
 /// TODO
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Bigint {
     /// true = number negative
     pub sign: bool,
@@ -231,13 +231,13 @@ fn highest_bit(input: u8) -> usize {
 }
 
 /// TODO
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Bigfloat {
 
 }
 
 /// TODO
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Bigcplx {
 
 }

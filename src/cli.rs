@@ -20,6 +20,7 @@ pub fn main() {
                 println!("{:#?}", abstract_data);
                 println!("Generating IR...");
                 let ir_data = crate::parser::beach::intermediate_representation(abstract_data);
+                println!("{:#?}", ir_data);
                 return;
             }
             "build" => build(&mut args),

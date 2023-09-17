@@ -1,4 +1,5 @@
-use crate::{platform::generic::Platform, generator::generic::AssemblyGenerator};
+use crate::platform::generic::Platform;
+use crate::generator::generic::AssemblyGenerator;
 
 pub mod generic;
 mod macos_aarch64;

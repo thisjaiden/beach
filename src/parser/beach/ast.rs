@@ -117,13 +117,20 @@ impl Program {
                             // we should expected a comma seperated list of `Evaluatable`s now,
                             // ending with CloseParenthesis, PhraseEnd
                             let mut eval_idx = 0;
+                            let mut not_eval = vec![];
                             while syms.peek() != Some(&&Symbol::CloseParenthesis) {
                                 // TODO: recursive function calls could have collisions...
                                 // TODO: doc this weird shit or improve it
+                                let task = Evaluatable::from_symbols(syms, Symbol::Also);
+                                if let Evaluatable::Value { value } = task {
+                                    not_eval.push(Some(value));
+                                    continue;
+                                }
                                 self.main_tasks.push(Task::Evaluate {
                                     label: format!("compiler_ast_call_eval_{}", eval_idx),
-                                    task: Evaluatable::from_symbols(syms, Symbol::Also)
+                                    task
                                 });
+                                not_eval.push(None);
                                 eval_idx += 1;
                             }
                             // throw away close parrens
@@ -131,21 +138,28 @@ impl Program {
                             // last sym should be PhraseEnd
                             if syms.peek() != Some(&&Symbol::PhraseEnd) {
                                 // if it's not, panic
-                                panic!("Expected `;` following a function call.");
+                                panic!("Expected `;` following a function call. (TODO: ANNOTATIONS)");
                             }
                             // throw away PhraseEnd
                             syms.next();
-                            let mut arguments = vec![];
-                            for i in 0..eval_idx {
-                                arguments.push(Value::Label(format!("compiler_ast_call_eval_{i}")));
+                            let mut arguments: Vec<Value> = vec![];
+                            for (idx, i) in not_eval.iter().enumerate() {
+                                if let Some(val) = i {
+                                    arguments.push(val.clone());
+                                }
+                                else {
+                                    arguments.push(Value::Label(format!("compiler_ast_call_eval_{idx}")));
+                                }
                             }
                             self.main_tasks.push(Task::Call { label: l.clone(), arguments });
-                            for i in 0..eval_idx {
-                                self.main_tasks.push(
-                                    Task::FreeEvaluated {
-                                        label: format!("compiler_ast_call_eval_{i}")
-                                    }
-                                );
+                            for (idx, i) in not_eval.iter().enumerate() {
+                                if i.is_none() {
+                                    self.main_tasks.push(
+                                        Task::FreeEvaluated {
+                                            label: format!("compiler_ast_call_eval_{idx}")
+                                        }
+                                    );
+                                }
                             }
                         }
                         Some(Symbol::PhraseEnd) => {
@@ -226,7 +240,7 @@ impl Evaluatable {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     Integer(Bigint),
     Float(Bigfloat),

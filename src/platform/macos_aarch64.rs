@@ -10,6 +10,8 @@ pub fn get_this() -> Platform<impl AssemblyGenerator> {
         memory_size_maximum: 1024 * 1024 * 1024 * 192,
         friendly_name: "MacOS",
         technical_name: "AArch64-based MacOS",
-        features: vec![],
+        features: vec![
+            "stdout"
+        ],
     }
 }

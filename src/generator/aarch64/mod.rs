@@ -1,29 +1,29 @@
-use super::generic;
+use super::generic::*;
 
 pub struct AArch64AssemblyGenerator;
 
-impl generic::AssemblyGenerator for AArch64AssemblyGenerator {
+impl AssemblyGenerator for AArch64AssemblyGenerator {
     const POINTER_WIDTH: u8 = 8;
     const REGISTER_WIDTH: u8 = 8;
     const INSTRUCTION_WIDTH: u8 = 4;
 
-    fn goto(label: generic::Data) -> String {
+    fn goto(label: HardwareData) -> String {
         match label {
-            generic::Data::Label(label_name) => {
+            HardwareData::Label(label_name) => {
                 let mut output = String::new();
                 output += &format!("mov x9, [{label_name}]\n");
                 output += "br x9\n";
                 return output;
             }
-            generic::Data::Register(register_name) => {
+            HardwareData::ImmediateRegister(register_name) => {
                 return format!("br {register_name}\n");
             }
             _ => todo!()
         }
     }
-    fn call(label: generic::Data) -> String {
+    fn call(label: HardwareData) -> String {
         match label {
-            generic::Data::Label(label_name) => {
+            HardwareData::Label(label_name) => {
                 let mut output = String::new();
                 output += "stp x29, x30, [sp, #-16]!\n";
                 output += "mov x29, sp\n";
@@ -32,7 +32,7 @@ impl generic::AssemblyGenerator for AArch64AssemblyGenerator {
                 output += "ldp x29, x30, [sp], #16\n";
                 return output;
             }
-            generic::Data::Register(register_name) => {
+            HardwareData::ImmediateRegister(register_name) => {
                 let mut output = String::new();
                 output += "stp x29, x30, [sp, #-16]!\n";
                 output += "mov x29, sp\n";
@@ -42,6 +42,9 @@ impl generic::AssemblyGenerator for AArch64AssemblyGenerator {
             }
             _ => todo!()
         }
+    }
+    fn endcall() -> String {
+        String::from("ret\n")
     }
     fn data(label: String, bytes: &[u8]) -> String {
         let mut output = String::new();
@@ -58,11 +61,11 @@ impl generic::AssemblyGenerator for AArch64AssemblyGenerator {
         return output;
     }
 
-    fn add(value: generic::Data, to: generic::Data) -> String {
+    fn add(value: HardwareData, to: HardwareData) -> String {
         todo!()
     }
 
-    fn set(location: generic::Data, value: generic::Data) -> String {
+    fn set(location: HardwareData, value: HardwareData) -> String {
         todo!()
     }
     
@@ -70,13 +73,13 @@ impl generic::AssemblyGenerator for AArch64AssemblyGenerator {
         Self {}
     }
 
-    const EXTENSIONS: Vec<generic::Extension> = vec![
+    const EXTENSIONS: Vec<Extension> = vec![
         // TODO: extensions
     ];
-    const EXTENSION_PERFORMANCE_ORDER: Vec<generic::Extension> = vec![
+    const EXTENSION_PERFORMANCE_ORDER: Vec<Extension> = vec![
         // TODO: ext perf order
     ];
-    const EXTENSION_SIZE_ORDER: Vec<generic::Extension> = vec![
+    const EXTENSION_SIZE_ORDER: Vec<Extension> = vec![
         // TODO: ext size order
     ];
 }
