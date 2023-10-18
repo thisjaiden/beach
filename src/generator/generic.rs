@@ -18,8 +18,17 @@ pub trait AssemblyGenerator {
     fn add(value: HardwareData, to: HardwareData) -> String;
     /// Sets `location` equal to `value`.
     fn set(location: HardwareData, value: HardwareData) -> String;
+    /// Assembly that defines a label named `label`.
+    fn label(label: String) -> String;
+    /// Assembly that stores `data` on a generic stack.
+    fn push(data: HardwareData) -> String;
+    /// Assembly that retrieves `amount` bytes from a generic stack, storing
+    /// them in `location`.
+    fn pop(amount: usize, location: HardwareData) -> String;
     /// Creates a fresh generator.
     fn new() -> Self;
+    /// Register names used for passing arguments to functions, in order.
+    const ARGUMENT_REGISTERS: &'static [&'static str];
     const EXTENSIONS: Vec<Extension>;
     const EXTENSION_PERFORMANCE_ORDER: Vec<Extension>;
     const EXTENSION_SIZE_ORDER: Vec<Extension>;
@@ -37,6 +46,7 @@ pub enum Extension {
 }
 
 /// Represents a real, tangible piece of data.
+#[derive(Debug)]
 pub enum HardwareData {
     // A valid hardware register for the platform that contains some data.
     ImmediateRegister(String),

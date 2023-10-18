@@ -11,7 +11,18 @@ pub fn get_this() -> Platform<impl AssemblyGenerator> {
         friendly_name: "MacOS",
         technical_name: "AArch64-based MacOS",
         features: vec![
-            "stdout"
+            (
+                "stdout",
+                "\
+stdout:
+mov x2, x1 // move arguments up one
+mov x0, x1
+mov X0, #1 // 1 = fd for stdout
+mov X16, #4 // unix write system call
+// x1 = ptr to str, x2 = len of str
+svc #0 // Call kernel to output the string
+ret"
+            )
         ],
     }
 }

@@ -132,6 +132,10 @@ impl Program {
                                 });
                                 not_eval.push(None);
                                 eval_idx += 1;
+                                // if we have another argument, throw away the comma between args.
+                                if syms.peek() == Some(&&Symbol::Also) {
+                                    syms.next();
+                                }
                             }
                             // throw away close parrens
                             syms.next();

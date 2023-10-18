@@ -5,6 +5,8 @@ mod ast;
 // intermediate representation
 mod ir;
 
+pub use ir::Executable;
+
 pub use self::lst::RESERVED_LABEL_SYMBOLS;
 
 pub fn read<R: std::io::Read>(reader: &mut R) -> lst::Syntax {

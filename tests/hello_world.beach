@@ -7,7 +7,10 @@ print => stdout;
 // Runs on program start
 main {
     // Print "Hello world!" to stdout (usually a console of some sort)
-    print("Hello world!");
+    // print("Hello world!");
+    // For this early stage, we're going to use the FFI directly (which is
+    // currently allowed !)
+    print("Hello world", 11);
 
     // End the program
     return;

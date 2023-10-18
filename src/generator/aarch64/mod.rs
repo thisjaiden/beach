@@ -7,6 +7,9 @@ impl AssemblyGenerator for AArch64AssemblyGenerator {
     const REGISTER_WIDTH: u8 = 8;
     const INSTRUCTION_WIDTH: u8 = 4;
 
+    fn label(label: String) -> String {
+        format!("{label}:\n")
+    }
     fn goto(label: HardwareData) -> String {
         match label {
             HardwareData::Label(label_name) => {
@@ -27,7 +30,7 @@ impl AssemblyGenerator for AArch64AssemblyGenerator {
                 let mut output = String::new();
                 output += "stp x29, x30, [sp, #-16]!\n";
                 output += "mov x29, sp\n";
-                output += &format!("mov x9, [{label_name}]\n");
+                output += &format!("adr x9, {label_name}\n");
                 output += "blr x9\n";
                 output += "ldp x29, x30, [sp], #16\n";
                 return output;
@@ -61,18 +64,49 @@ impl AssemblyGenerator for AArch64AssemblyGenerator {
         return output;
     }
 
+    fn push(data: HardwareData) -> String {
+        match data {
+            HardwareData::ImmediateRegister(reg) => {
+                // TODO: this is inefficent (uses 16 bytes for 8 byte registers)
+                return format!("str {reg}, [sp, #-16]!\n");
+            }
+            _ => todo!()
+        }
+    }
+
+    fn pop(amount: usize, location: HardwareData) -> String {
+        todo!()
+    }
+
     fn add(value: HardwareData, to: HardwareData) -> String {
         todo!()
     }
 
     fn set(location: HardwareData, value: HardwareData) -> String {
-        todo!()
+        match location {
+            HardwareData::ImmediateRegister(reg) => {
+                match value {
+                    HardwareData::ImmediateRegister(reg2) => {
+                        return format!("mov {reg}, {reg2}\n");
+                    }
+                    HardwareData::Label(label) => {
+                        return format!("ldr {reg}, {label}\n");
+                    }
+                    unfinished => todo!("val: {:?}", unfinished)
+                }
+            }
+            _ => todo!()
+        }
     }
     
     fn new() -> Self {
         Self {}
     }
 
+    // ARM conventions and C, doesn't work with C++ which passes func addr in x0
+    const ARGUMENT_REGISTERS: &'static [&'static str] = &[
+        "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"
+    ];
     const EXTENSIONS: Vec<Extension> = vec![
         // TODO: extensions
     ];

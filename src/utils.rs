@@ -239,5 +239,6 @@ pub struct Bigfloat {
 /// TODO
 #[derive(Debug, PartialEq, Clone)]
 pub struct Bigcplx {
-
+    pub real: Bigfloat,
+    pub immaginary: Bigfloat,
 }

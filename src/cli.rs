@@ -21,6 +21,9 @@ pub fn main() {
                 println!("Generating IR...");
                 let ir_data = crate::parser::beach::intermediate_representation(abstract_data);
                 println!("{:#?}", ir_data);
+                println!("Generating assembly...");
+                let assembly_data = crate::platform::get_all_platforms()[0].generate_assembly(ir_data);
+                println!("{}", assembly_data);
                 return;
             }
             "build" => build(&mut args),

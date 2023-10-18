@@ -1,12 +1,12 @@
-use crate::parser::beach::ast::{Definition, Task, Value};
+use crate::{parser::beach::ast::{Definition, Task, Value}, generator::generic::{AssemblyGenerator, HardwareData}};
 
 #[derive(Debug)]
 pub struct Executable {
-    platform_requirements: Vec<String>,
-    data: Vec<Data>,
-    code_sections: Vec<Code>,
+    pub platform_requirements: Vec<String>,
+    pub data: Vec<Data>,
+    pub code_sections: Vec<CodeSegment>,
     // Name of the section in `code_sections` that should be run on startup
-    entry_point: String,
+    pub entry_point: String,
     internal_data_index: usize,
 }
 
@@ -29,7 +29,7 @@ impl Executable {
         }
         // change this if any subfunctions use this name
         program.entry_point = String::from("default_entry_point");
-        let mut entry_point_code = Code::new("default_entry_point");
+        let mut entry_point_code = CodeSegment::new("default_entry_point");
         for task in ast.main_tasks {
             match task {
                 Task::ExitBlock => entry_point_code.add_task(GeneratableTask::EndCall),
@@ -71,14 +71,14 @@ impl Executable {
 }
 
 #[derive(Debug)]
-pub struct Code {
-    label: String,
-    tasks: Vec<GeneratableTask>
+pub struct CodeSegment {
+    pub label: String,
+    pub tasks: Vec<GeneratableTask>
 }
 
-impl Code {
-    pub fn new(label: &'static str) -> Code {
-        Code {
+impl CodeSegment {
+    pub fn new(label: &'static str) -> CodeSegment {
+        CodeSegment {
             label: label.to_string(),
             tasks: vec![]
         }
@@ -89,7 +89,7 @@ impl Code {
 }
 
 #[derive(Debug)]
-enum GeneratableTask {
+pub enum GeneratableTask {
     GoTo(String),
     SetCallArgument { argument_number: usize, argument_value: ImmediateOrRefrence },
     Call(String),
@@ -99,12 +99,51 @@ enum GeneratableTask {
     RequiredExtension(Vec<String>)
 }
 
+impl GeneratableTask {
+    pub fn call_generator<G: AssemblyGenerator>(&self) -> String {
+        match self {
+            Self::SetCallArgument { argument_number, argument_value } => {
+                let mut workspace = String::new();
+                let reg = G::ARGUMENT_REGISTERS.get(*argument_number)
+                    .expect("TODO: Too many arguments!")
+                    .to_string();
+                workspace += &G::push(
+                    HardwareData::ImmediateRegister(reg.clone())
+                );
+                workspace += &G::set(
+                    crate::generator::generic::HardwareData::ImmediateRegister(
+                        reg
+                    ),
+                    argument_value.into_hardware_data()
+                );
+                return workspace;
+            }
+            Self::Call(to_call) => {
+                return G::call(HardwareData::Label(to_call.clone()));
+            }
+            Self::EndCall => {
+                return G::endcall();
+            }
+            _ => todo!("{:?}", self)
+        }
+    }
+}
+
 #[derive(Debug)]
 enum ImmediateOrRefrence {
     // Try not to pass things larger than ~4 bytes as immediate arguments.
     // (basically strings and large data)
     Immediate(Vec<u8>),
     Refrence(String)
+}
+
+impl ImmediateOrRefrence {
+    pub fn into_hardware_data(&self) -> HardwareData {
+        match self {
+            Self::Immediate(data) => HardwareData::Immediate(data.clone()),
+            Self::Refrence(ref_name) => HardwareData::Label(ref_name.clone())
+        }
+    }
 }
 
 #[derive(Debug)]
