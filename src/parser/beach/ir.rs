@@ -5,8 +5,8 @@ pub struct Executable {
     pub platform_requirements: Vec<String>,
     pub data: Vec<Data>,
     pub code_sections: Vec<CodeSegment>,
-    // Name of the section in `code_sections` that should be run on startup
-    pub entry_point: String,
+    /// Section that should be run on startup
+    pub entry_point: CodeSegment,
     internal_data_index: usize,
 }
 
@@ -16,7 +16,7 @@ impl Executable {
             platform_requirements: vec![],
             data: vec![],
             code_sections: vec![],
-            entry_point: String::new(),
+            entry_point: CodeSegment::new(""),
             internal_data_index: 0,
         }
     }
@@ -27,17 +27,14 @@ impl Executable {
                 program.platform_requirements.push(label.clone());
             }
         }
-        // change this if any subfunctions use this name
-        program.entry_point = String::from("default_entry_point");
-        let mut entry_point_code = CodeSegment::new("default_entry_point");
         for task in ast.main_tasks {
             match task {
-                Task::ExitBlock => entry_point_code.add_task(GeneratableTask::EndCall),
+                Task::ExitBlock => {}, //program.entry_point.add_task(GeneratableTask::EndCall),
                 Task::Call { label, arguments } => {
                     for (argument_index, argument_value) in arguments.iter().enumerate() {
                         match argument_value {
                             Value::Label(label) => {
-                                entry_point_code.add_task(GeneratableTask::SetCallArgument {
+                                program.entry_point.add_task(GeneratableTask::SetCallArgument {
                                     argument_number: argument_index,
                                     argument_value: ImmediateOrRefrence::Refrence(label.clone())
                                 });
@@ -51,21 +48,40 @@ impl Executable {
                                     default: Some(string_as_bytes.to_vec())
                                 });
                                 program.internal_data_index += 1;
-                                entry_point_code.add_task(GeneratableTask::SetCallArgument {
+                                program.entry_point.add_task(GeneratableTask::SetCallArgument {
                                     argument_number: argument_index,
                                     argument_value: ImmediateOrRefrence::Refrence(local_label)
                                 });
                             }
+                            Value::Integer(data) => {
+                                if data.bit_width() <= 32 {
+                                    program.entry_point.add_task(GeneratableTask::SetCallArgument {
+                                        argument_number: argument_index,
+                                        argument_value: ImmediateOrRefrence::Immediate(data.to_le_bytes().unwrap())
+                                    });
+                                }
+                                else {
+                                    let local_label = format!("compiler_ir_const_data_allocation_{}", program.internal_data_index);
+                                    program.data.push(Data {
+                                        label: local_label.clone(),
+                                        size: (data.bit_width() as f32 / 8.0).floor() as usize,
+                                        default: Some(data.to_le_bytes().unwrap())
+                                    });
+                                    program.internal_data_index += 1;
+                                    program.entry_point.add_task(GeneratableTask::SetCallArgument {
+                                        argument_number: argument_index,
+                                        argument_value: ImmediateOrRefrence::Refrence(local_label)
+                                    });
+                                }
+                            }
                             _ => todo!()
                         }
                     }
-                    entry_point_code.add_task(GeneratableTask::Call(label));
+                    program.entry_point.add_task(GeneratableTask::Call(label));
                 }
                 _ => todo!()
             }
         }
-        program.code_sections.push(entry_point_code);
-        //todo!();
         program
     }
 }
@@ -133,6 +149,7 @@ impl GeneratableTask {
 enum ImmediateOrRefrence {
     // Try not to pass things larger than ~4 bytes as immediate arguments.
     // (basically strings and large data)
+    // Immediate data must be stored in LE order if numeric.
     Immediate(Vec<u8>),
     Refrence(String)
 }
@@ -150,5 +167,6 @@ impl ImmediateOrRefrence {
 pub struct Data {
     pub label: String,
     pub size: usize,
+    // default data is in LE order if relevant.
     pub default: Option<Vec<u8>>
 }

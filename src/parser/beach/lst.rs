@@ -276,6 +276,9 @@ impl Symbol {
         }
         // TODO: differentiate numeric values and other types
         reader.read_word();
+        if let Ok(ival) = peaked_word.parse::<i64>() {
+            return Some(Symbol::Integer(Bigint::from_i64(ival)));
+        }
         return Some(Symbol::Label(peaked_word));
     }
     pub fn read_all_symbols(reader: &mut StringReader) -> Vec<Symbol> {

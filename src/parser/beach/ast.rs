@@ -114,7 +114,7 @@ impl Program {
                             // This is a function call!
                             // throw away open parrens
                             syms.next();
-                            // we should expected a comma seperated list of `Evaluatable`s now,
+                            // we should expect a comma seperated list of `Evaluatable`s now,
                             // ending with CloseParenthesis, PhraseEnd
                             let mut eval_idx = 0;
                             let mut not_eval = vec![];
@@ -124,6 +124,10 @@ impl Program {
                                 let task = Evaluatable::from_symbols(syms, Symbol::Also);
                                 if let Evaluatable::Value { value } = task {
                                     not_eval.push(Some(value));
+                                    // if we have another argument, throw away the comma between args.
+                                    if syms.peek() == Some(&&Symbol::Also) {
+                                        syms.next();
+                                    }
                                     continue;
                                 }
                                 self.main_tasks.push(Task::Evaluate {
@@ -155,7 +159,15 @@ impl Program {
                                     arguments.push(Value::Label(format!("compiler_ast_call_eval_{idx}")));
                                 }
                             }
-                            self.main_tasks.push(Task::Call { label: l.clone(), arguments });
+                            let mut target = l.clone();
+                            for def in &self.definitions {
+                                if let Definition::Alias { label: aptfr, points_to: aptto } = &def {
+                                    if l == aptfr {
+                                        target = aptto[0].clone();
+                                    }
+                                }
+                            }
+                            self.main_tasks.push(Task::Call { label: target.clone(), arguments });
                             for (idx, i) in not_eval.iter().enumerate() {
                                 if i.is_none() {
                                     self.main_tasks.push(
@@ -237,6 +249,9 @@ impl Evaluatable {
         match syms.next().expect("Called with null sym, should be impossible") {
             Symbol::String(symstr) => {
                 return Self::Value { value: Value::String(symstr.clone()) }
+            }
+            Symbol::Integer(symint) => {
+                return Self::Value { value: Value::Integer(symint.clone()) }
             }
             sym => todo!("evaluatble from_symbols sym ({:?})", sym)
         }

@@ -10,7 +10,7 @@ main {
     // print("Hello world!");
     // For this early stage, we're going to use the FFI directly (which is
     // currently allowed !)
-    print("Hello world", 11);
+    print("Hello world!", 12);
 
     // End the program
     return;

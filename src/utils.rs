@@ -151,7 +151,7 @@ impl StringReader {
 pub struct Bigint {
     /// true = number negative
     pub sign: bool,
-    // later in the array is bigger
+    // later in the array is bigger (LE)
     bytes: Vec<u8>
 }
 
@@ -186,6 +186,27 @@ impl Bigint {
             }
         }
     }
+    pub fn from_i64(input: i64) -> Bigint {
+        if input.is_negative() {
+            let mut out = Bigint {
+                sign: true,
+                bytes: (input * -1).to_le_bytes().to_vec()
+            };
+            out.trim_bytes();
+            return out;
+        }
+        else {
+            let mut out = Bigint {
+                sign: false,
+                bytes: input.to_le_bytes().to_vec()
+            };
+            out.trim_bytes();
+            return out;
+        }
+    }
+    pub fn from_str(input: &str) -> Bigint {
+        todo!();
+    }
     pub fn to_u8(&self) -> Result<u8, anyhow::Error> {
         if self.bit_width() <= 8 && !self.sign {
             return Ok(self.bytes[0]);
@@ -215,8 +236,24 @@ impl Bigint {
             ));
         }
     }
+    pub fn to_le_bytes(&self) -> Result<Vec<u8>, anyhow::Error> {
+        if !self.sign {
+            return Ok(self.bytes.clone());
+        }
+        todo!()
+    }
+    fn trim_bytes(&mut self) {
+        while self.bytes[self.bytes.len() - 1] == 0x00 {
+            self.bytes.pop();
+        }
+    }
     pub fn bit_width(&self) -> usize {
-        highest_bit(*self.bytes.last().unwrap()) + (8 * (self.bytes.len() - 1))
+        // how many bits are used in the last byte of this number
+        highest_bit(*self.bytes.last().unwrap()) +
+            // how many bytes are in the number minus one
+            (8 * (self.bytes.len() - 1)) +
+            // is the number negative
+            (self.sign as usize)
     }
 }
 

@@ -90,7 +90,13 @@ impl AssemblyGenerator for AArch64AssemblyGenerator {
                         return format!("mov {reg}, {reg2}\n");
                     }
                     HardwareData::Label(label) => {
-                        return format!("ldr {reg}, {label}\n");
+                        return format!("adr {reg}, {label}\n");
+                    }
+                    HardwareData::Immediate(imm) => {
+                        if imm.len() == 1 {
+                            return format!("movz {reg}, #{}\n", imm[0]);
+                        }
+                        todo!();
                     }
                     unfinished => todo!("val: {:?}", unfinished)
                 }
