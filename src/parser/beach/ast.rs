@@ -10,7 +10,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn from_lst(lst: super::lst::Syntax) -> Program {
+    pub fn from_lst(lst: super::lst::Syntax) -> Result<Program, anyhow::Error> {
         let mut program = Program { definitions: vec![], global_tasks: vec![], main_tasks: vec![] };
         let mut syms = lst.symbols.iter().peekable();
         // TODO: split this into several functions for basic context and structure
@@ -31,17 +31,21 @@ impl Program {
                                     program.definitions.push(Definition::System { label: label.clone() });
                                 }
                                 else {
-                                    panic!("Expected `;` following `needs {}`. ({{TODO: ANNOTATIONS}})", label);
+                                    return Err(anyhow::Error::msg(
+                                        format!("Expected `;` following `needs {}`. (TODO: ANNOTATIONS)", label)
+                                    ));
                                 }
                             }
                         }
                         Keyword::Kmain => {
                             if Some(&&Symbol::OpenBrace) == syms.peek() {
                                 syms.next();
-                                program.main_scope(&mut syms);
+                                program.main_scope(&mut syms)?;
                             }
                             else {
-                                panic!("Expected `{{` following keyword `main`. ({{TODO: ANNOTATIONS}})");
+                                return Err(anyhow::Error::msg(
+                                    "Expected `{` following keyword `main`. (TODO: ANNOTATIONS)"
+                                ));
                             }
                         }
                         _ => todo!()
@@ -79,7 +83,9 @@ impl Program {
                                     out_lab_with_refs.push(suboutlabel.to_string());
                                 }
                                 else {
-                                    panic!("Expected a label following a module seperator `~` in an alias statement. ({{TODO ANNOTATIONS}})");
+                                    return Err(anyhow::Error::msg(
+                                        "Expected a label following a module seperator (~) in an alias statement. (TODO: ANNOTATIONS)"
+                                    ));
                                 }
                             }
                             // check for PhraseEnd
@@ -89,20 +95,24 @@ impl Program {
                                 program.definitions.push(Definition::Alias { label: l.clone(), points_to: out_lab_with_refs.clone() });
                             }
                             else {
-                                panic!("Expected `;` following an alias statement. ({{TODO: ANNOTATIONS}})");
+                                return Err(anyhow::Error::msg(
+                                    "Expected `;` following an alias statement. (TODO: ANNOTATIONS)"
+                                ));
                             }
                         }
                         else {
-                            panic!("Expected a label following the alias operator `=>`. ({{TODO: ANNOTATIONS}})");
+                            return Err(anyhow::Error::msg(
+                                "Expected a label following the alias operator. (`=>`) (TODO: ANNOTATIONS)"
+                            ));
                         }
                     }
                 }
                 k => todo!("{:?}", k)
             }
         }
-        program
+        Ok(program)
     }
-    fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>)
+    fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
     where
         I: Iterator<Item = &'a Symbol> {
         while syms.peek().is_some() {
@@ -194,7 +204,7 @@ impl Program {
                 }
                 Symbol::CloseBrace => {
                     // end of main block
-                    return;
+                    return Ok(());
                 }
                 Symbol::Keyword(sym_kywrd) => {
                     match sym_kywrd {
@@ -215,12 +225,17 @@ impl Program {
                 sym => { todo!("TODO ICE sym ({:?})", sym) }
             }
         }
+        return Err(anyhow::Error::msg(
+            "Expected a } to close the main block before the end of the file. (TODO: ANNOTATIONS)"
+        ));
     }
 }
 
 #[derive(Debug)]
 pub enum Definition {
     System { label: String },
+    File { label: String },
+    Library { name: String, version: String },
     Alias { label: String, points_to: Vec<String> },
     GlobalConstant { label: String, value: Value },
     Function { label: String, tasks: Vec<Task> },

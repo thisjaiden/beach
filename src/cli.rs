@@ -16,7 +16,7 @@ pub fn main() {
                 let parsed_data = crate::parser::beach::parse_string_file(data);
                 println!("{:#?}", parsed_data);
                 println!("Abstracting...");
-                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data);
+                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data).unwrap();
                 println!("{:#?}", abstract_data);
                 println!("Generating IR...");
                 let ir_data = crate::parser::beach::intermediate_representation(abstract_data);
@@ -46,7 +46,8 @@ Avalable arguments:
 input [FILE]
 output folder [FOLDER]
 output name [NAME]
-debug");
+debug
+assembly");
         }
         Some(_) => {
             println!("Unknown argument. Try `beach help` for a list of options.");
@@ -70,6 +71,11 @@ fn build(args: &mut std::env::Args) {
     // TODO: no unwrap!
     let mut input_file = std::env::current_dir().unwrap();
     input_file.push("main.beach");
+    // Indicates if the build process should output the generated assembly for
+    // each given platform.
+    let mut output_assembly = false;
+    // Indicates if debug symbols should be included in the final executables.
+    let mut enable_debug_symbols = false;
     while let Some(arg) = args.next() {
         match arg.as_ref() {
             "input" => {
@@ -81,7 +87,12 @@ fn build(args: &mut std::env::Args) {
                 todo!();
             }
             "debug" => {
-                todo!();
+                enable_debug_symbols = true;
+                todo!("not used");
+            }
+            "assembly" => {
+                output_assembly = true;
+                todo!("not used");
             }
             inv => {
                 println!("Invalid argument. (`{inv}`) Try `beach help build` for a list of valid arguments.");
@@ -100,7 +111,11 @@ fn build(args: &mut std::env::Args) {
                 println!("👓 Parsing file...");
                 let parsed_data = crate::parser::beach::parse_string_file(data);
                 println!("🔎 Checking syntax...");
-                todo!();
+                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data);
+                if let Err(e) = abstract_data {
+                    panic!("{}", e);
+                }
+                let abstract_data = abstract_data.unwrap();
                 loop {
                     println!("👓➕ Parsing subfiles...");
                     todo!();
@@ -115,6 +130,9 @@ fn build(args: &mut std::env::Args) {
                 for target in valid_targets {
                     println!("🔨 Compiling for {}", target.name);
                     todo!();
+                    if output_assembly {
+                        todo!();
+                    }
                     for packager in target.packagers {
                         println!("📦 Packaging as {}...", packager.name);
                         todo!();

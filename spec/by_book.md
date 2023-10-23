@@ -33,18 +33,18 @@ The first thing to run in your program. A type of function with no arguments in 
 
 ```beach
 // Implied type from context. Usually the smallest type that functions.
-let name = value;
+var name = value;
 // To specifiy type used.
-let name: type = value;
-// To create a mutable variable
-let mut name = value;
+var name: type = value;
+// To create a mutable variable--one that can be changed.
+var mut name = value;
 ```
 
 ## logical operations
 
 ```beach
-let a = true;
-let b = false;
+var a = true;
+var b = false;
 
 a == b  // False (IS)
 a != b  // True  (IS NOT)
@@ -58,42 +58,59 @@ a ^^ b  // True  (XOR)
 ## external files
 
 ```beach
-// Imports a local file (file_name.beach)
-import file_name;
-// Imports a library with a specified version
-import library_name~1.2.3;
-// Imports a library with a different top level name
-import library_name~1.2.3 => namespace_alias;
+// Imports a local file. (file_name.beach)
+file file_name;
+// Imports a library with a specified version. The version is required.
+library library_name~1.2.3;
+// Imports a library with a different top level name.
+library library_name~1.2.3 => namespace_alias;
 ```
 
 ## namespaces
 
+> main.beach
+
 ```beach
-/// main.beach
-// Imports all global items of a under the `a~` prefix
-import a;
+// Imports all exported items of `a` under the `a~` prefix.
+file a;
+
 // a -> b -> foo: follow the chain and add `~`s
 a~b~foo(5, 10);
+```
 
-/// a.beach
-// Imports all global items of b under the `b~` prefix, but also reexports these items
-import b;
+> a.beach
 
-/// a/b.beach
+```beach
+// Imports all exported items of b under the `b~` prefix, but also reexports these items
+file b;
+export b;
+```
+
+> a/b.beach
+
+```beach
 // generic function
-let foo = |a: integer, b: integer| -> nothing { ... }
+let foo = |a: integer, b: integer| -> nothing { ... };
+// exports said function
+export foo;
 ```
 
 ## glob imports
 
-```beach
-/// main.beach
-import a~~
-// Valid since all items under foo were imported to this namespace
-bar;
+> main.beach
 
-/// foo.beach
-let bar = |nothing| -> nothing { ... }
+```beach
+file foo~~
+// Valid since all items under foo were imported to this namespace.
+bar;
+// This also works with libraries.
+```
+
+> foo.beach
+
+```beach
+let bar = |nothing| -> nothing { ... };
+export bar;
 ```
 
 ## typecasting
