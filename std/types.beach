@@ -1,0 +1,32 @@
+!!export all
+
+dynamic type printable {
+    pub var to_string: function<&self, string>;
+}
+
+resolute type string {
+    var pointer: ptr;
+    var length: usize;
+
+    /// Returns a raw pointer to the string in memory. This is highly unsafe for
+    /// several reasons. If the string is deallocated or reallocated this is a
+    /// dangling pointer. Only use this extremely sparingly and where you can
+    /// verify it's safe to do so.
+    pub unsafe var get_pointer = |&self| -> ptr {
+        unsafe {
+            // See the function documentation on why this is unsafe.
+            return self.pointer.copy;
+        }
+    }
+
+    /// Returns the length of this string, in bytes. For the length of this
+    /// string in characters, see get_length_characters.
+    pub var get_length_bytes = |&self| -> usize {
+        self.length
+    }
+    /// Returns the length of this string, in characters. For the length of this
+    /// string in bytes, see get_length_bytes.
+    pub var get_length_characters = |&self| -> usize {
+        todo
+    }
+}

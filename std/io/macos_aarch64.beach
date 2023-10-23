@@ -1,4 +1,4 @@
-!!export_all;
+!!export all
 
 // This function is infallible and safe, unless the kernel fails. You can be
 // highly confident this will not cause UB or issues in your code. 
@@ -11,14 +11,16 @@ var stdout = |output: printable| -> nothing {
         let rv: isize = !!syscall(
             // Unix write systemcall
             4,
-            // 1 = StdOut on this platform
-            1,
-            // Pointer to our output. We can directly use the underlying pointer
-            // for any given `string` since this syscall copies data out and
-            // does not modify or invalidate the original data.
-            stringified.ptr(),
-            // Size of our output
-            stringified.size_bytes()
+            (
+                // 1 = StdOut on this platform
+                1,
+                // Pointer to our output. We can directly use the underlying pointer
+                // for any given `string` since this syscall copies data out and
+                // does not modify or invalidate the original data.
+                stringified.get_pointer(),
+                // Size of our output
+                stringified.size_bytes()
+            )
         );
         if rv == -1 {
             // TODO: something to handle stdout failure

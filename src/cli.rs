@@ -38,22 +38,94 @@ pub fn main() {
 
 fn help(args: &mut std::env::Args) {
     // TODO: read args for more specific help
-    println!("TODO HELP FILE");
+    match args.next().as_deref() {
+        Some("build") => {
+            println!("\
+beach build [ARGS]
+Avalable arguments:
+input [FILE]
+output folder [FOLDER]
+output name [NAME]
+debug");
+        }
+        Some(_) => {
+            println!("Unknown argument. Try `beach help` for a list of options.");
+            todo!();
+        }
+        None => {
+            println!("\
+General usage:
+beach build - builds your program for many platforms
+beach run - builds and runs your program on this platform
+beach check - checks if your program is valid
+beach update - updates the compiler, if possible
+beach info - gives information about the current installation
+beach help - provides this help menu
+beach help [COMMAND] - provides more detailed help");
+        }
+    }
 }
 
 fn build(args: &mut std::env::Args) {
     // TODO: no unwrap!
-    let calling_dir = std::env::current_dir().unwrap();
-    // Seach for a `main.beach` file.
-    let mut main_file = calling_dir.clone();
-    main_file.push("main.beach");
-    // TOCTOU ok here
-    if let Ok(exists) = main_file.try_exists() {
+    let mut input_file = std::env::current_dir().unwrap();
+    input_file.push("main.beach");
+    while let Some(arg) = args.next() {
+        match arg.as_ref() {
+            "input" => {
+                // TODO: no unwrap!
+                input_file = std::env::current_dir().unwrap();
+                input_file.push(args.next().expect("Expected a filepath following `input`."));
+            }
+            "output" => {
+                todo!();
+            }
+            "debug" => {
+                todo!();
+            }
+            inv => {
+                println!("Invalid argument. (`{inv}`) Try `beach help build` for a list of valid arguments.");
+                std::process::exit(0);
+            }
+        }
+    }
+    // TOCTOU ok here: We handle all error conditions gracefully. We're only
+    // really checking to *improve* error messages, not *provide* them.
+    // TODO: BACKLOG: Changing this to a match statement would decrease nesting,
+    // improve code readability, and potentially slightly improve performance.
+    if let Ok(exists) = input_file.try_exists() {
         if exists {
-            if let Ok(data) = std::fs::read_to_string(main_file) {
+            if let Ok(data) = std::fs::read_to_string(input_file) {
                 // TODO: build
                 println!("👓 Parsing file...");
                 let parsed_data = crate::parser::beach::parse_string_file(data);
+                println!("🔎 Checking syntax...");
+                todo!();
+                loop {
+                    println!("👓➕ Parsing subfiles...");
+                    todo!();
+                    println!("🔎➕ Checking subfiles...");
+                    todo!();
+                }
+                println!("📖 Generating intermediates...");
+                todo!();
+                println!("🎛️ Calculating valid targets...");
+                todo!();
+                /*
+                for target in valid_targets {
+                    println!("🔨 Compiling for {}", target.name);
+                    todo!();
+                    for packager in target.packagers {
+                        println!("📦 Packaging as {}...", packager.name);
+                        todo!();
+                    }
+                }
+                println!(
+                    "☑️ Built for {} targets in {}",
+                    valid_targets.len(),
+                    elapsed_build_time
+                );
+                */
             }
             else {
                 println!("`main.beach` is not valid UTF-8 or otherwise could not be read.");
