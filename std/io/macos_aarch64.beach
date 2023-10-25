@@ -1,7 +1,5 @@
 !!export all
 
-// This function is infallible and safe, unless the kernel fails. You can be
-// highly confident this will not cause UB or issues in your code. 
 var stdout = |output: printable| -> nothing {
     // Convert our `printable` input into a `string` for universal output
     let stringified = output.to_string();

@@ -1,0 +1,15 @@
+!!export all
+
+var exit = |code: i16| -> never {
+    // syscalls are unsafe.
+    unsafe {
+        !!syscall(
+            // Unix exit systemcall
+            1,
+            // Return value (0 = no error)
+            (code)
+        );
+    }
+    // Hint for the compiler that it should not be able to get to this point.
+    !!unreachable
+};

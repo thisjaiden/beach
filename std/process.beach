@@ -1,0 +1,5 @@
+!!export all
+
+platform macos_aarch64 {
+    file macos_aarch64~~;
+}
