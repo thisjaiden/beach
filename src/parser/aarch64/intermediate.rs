@@ -156,15 +156,25 @@ impl Condition {
 
 pub enum Register {
     /// General purpose registers with argument and return values conventions.
-    X0, X1, X2, X3, X4, X5, X6, X7,
-    // TODO X8-X18
-    /// General purpose registers with preservation conventions.
-    X19, X20, X21, X22, X23, X24, X25, X26, X27, X28,
+    R0, R1, R2, R3, R4, R5, R6, R7,
+    /// Indirect return value address. (??)
+    R8,
+    /// General purpose registers that must be preserved by the caller, if used.
+    R9, R10, R11, R12, R13, R14, R15,
+    /// Intra-procedure scratch registers.
+    R16, R17,
+    /// Platform defined.
+    R18,
+    /// General purpose registers that must be preserved by the callee, if used.
+    R19, R20, R21, R22, R23, R24, R25, R26, R27, R28,
     /// Frame pointer: the value of SP for the callee.
-    X29,
+    R29,
     /// Current return address.
-    X30,
-    // TODO XZR
+    R30,
+    /// {Z}ero {R}egister
+    /// 
+    /// Acts as the value 0. Not defined as a real register.
+    ZR,
     /// {P}rogram {C}ounter
     /// 
     /// Points to the current executing location in memory.
@@ -173,4 +183,47 @@ pub enum Register {
     /// 
     /// Points to the current bottom of the stack.
     SP
+}
+
+impl Register {
+    /// Used for bytecode generation. Only the low 5 bits are used.
+    pub fn to_5_bits(&self) -> u8 {
+        // I know this sucks. Oh well! It's Fast Enough:tm: and not so horrible
+        // I'd bother with a macro or library.
+        match self {
+            Self::R0 => 0b00000,
+            Self::R1 => 0b00001,
+            Self::R2 => 0b00010,
+            Self::R3 => 0b00011,
+            Self::R4 => 0b00100,
+            Self::R5 => 0b00101,
+            Self::R6 => 0b00110,
+            Self::R7 => 0b00111,
+            Self::R8 => 0b01000,
+            Self::R9 => 0b01001,
+            Self::R10 => 0b01010,
+            Self::R11 => 0b01011,
+            Self::R12 => 0b01100,
+            Self::R13 => 0b01101,
+            Self::R14 => 0b01110,
+            Self::R15 => 0b01111,
+            Self::R16 => 0b10000,
+            Self::R17 => 0b10001,
+            Self::R18 => 0b10010,
+            Self::R19 => 0b10011,
+            Self::R20 => 0b10100,
+            Self::R21 => 0b10101,
+            Self::R22 => 0b10110,
+            Self::R23 => 0b10111,
+            Self::R24 => 0b11000,
+            Self::R25 => 0b11001,
+            Self::R26 => 0b11010,
+            Self::R27 => 0b11011,
+            Self::R28 => 0b11100,
+            Self::R29 => 0b11101,
+            Self::R30 => 0b11110,
+            Self::ZR => 0b11111,
+            _ => panic!("This register is not valid in a 5 bit encoding context!")
+        }
+    }
 }
