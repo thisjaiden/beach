@@ -1,6 +1,6 @@
 use std::env::args;
 
-use crate::parser::beach::Definition;
+use crate::{parser::beach::Definition, utils::install_directory};
 
 pub fn main() {
     println!("🏖️ beach v{}", env!("CARGO_PKG_VERSION"));
@@ -108,9 +108,19 @@ fn build(args: &mut std::env::Args) {
     match input_file.try_exists() {
         Ok(true) => {
             if let Ok(data) = std::fs::read_to_string(input_file.clone()) {
-                // TODO: build
+                // Import std~core into file directly
+                let mut dir = install_directory();
+                dir.push("std");
+                dir.push("core.beach");
+                let std_core = std::fs::read_to_string(dir).unwrap();
+                // Reassign file with std imported
+                let data = std_core + &data;
+
+                // Parse file to lst
                 println!("👓 Parsing file...");
                 let parsed_data = crate::parser::beach::parse_string_file(data);
+
+                // Parse file to ast
                 println!("🔎 Checking syntax...");
                 let abstract_data = crate::parser::beach::abstract_syntax(parsed_data, None);
                 if let Err(e) = abstract_data {

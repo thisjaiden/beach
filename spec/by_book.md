@@ -7,7 +7,7 @@ function_to_alias => aliased_name;
 function_to_alias_externally =>! aliased_name;
 ```
 
-Creates an alias in this file. Adding an ! to the end of the alias symbol exports this alias to other files importing this one.
+Creates an alias (alternate name) for a function.  Adding an ! to the end of the alias symbol exports this alias to other files importing this one.
 
 ## main
 
@@ -18,7 +18,13 @@ main {
 };
 ```
 
-The first thing to run in your program. A type of function with no arguments in and no return value out. Special consideration: the main block may return `nothing` *or* `never`. No need to clarify which, but one must be returned.
+The first thing to run in your program. A type of function with no arguments in and no return value out. Special consideration: the main block may return `nothing` *or* `never`. No need to clarify which, but one in specific must be returned.
+
+Special notes:
+
+- Projects that are executables *must* have a main block.
+- Projects that are library code and not executables may not have a main block.
+- Projects that are bare metal or operating system agnostic *must* have a main block, but it may not be imediately executed.
 
 ## comments
 
@@ -90,7 +96,7 @@ export b;
 
 ```beach
 // generic function
-let foo = |a: integer, b: integer| -> nothing { ... };
+var foo = |a: integer, b: integer| -> nothing { ... };
 // exports said function
 export foo;
 ```
@@ -109,16 +115,27 @@ bar;
 > foo.beach
 
 ```beach
-let bar = |nothing| -> nothing { ... };
+var bar = |nothing| -> nothing { ... };
 export bar;
 ```
+
+## `result`s
+
+Sometimes functions return a result\<T>. This indicates that either the function errored, or succeeded and is returning a value of type T. This is a builtin type.
 
 ## typecasting
 
 ```beach
 // Typecasting between basic types
-let a: u16 = 1234;
-let b: i32 = 1234 -> i32;
+var a: u16 = 1234;
+var b: i32 = 1234 -> i32;
+
+// Catching errors when typecasting
+var big: u32 = 100000;
+// .typecast() returns a result<u8>, and running .expect on that either converts
+// to a u8 if the conversion was successful, or crashes with a message if there
+// was an error converting.
+var smaller: u8 = big.typecast().expect("unable to typecast!");
 ```
 
 ## arithmetic
@@ -139,17 +156,17 @@ a ^ b //  Bitwise XOR
 
 ```beach
 // all functions are variables.
-let add_two_numbers = |a: number, b:number| -> number {
+var add_two_numbers = |a: number, b:number| -> number {
     return a + b;
 }
 
 // functions that do not take inputs must be written so:
-let the_number_five = |nothing| -> number {
+var the_number_five = |nothing| -> number {
     return 5;
 }
 
 // functions that do not return a value must be written so:
-let i_do_nothing = |nothing| -> nothing {
+var i_do_nothing = |nothing| -> nothing {
     return;
 }
 

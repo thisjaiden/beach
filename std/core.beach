@@ -1,0 +1,9 @@
+/// # std~core
+/// 
+/// This file describes standard functions and types avalable across all
+/// platforms. `core.beach` is autoimported by all projects by copying this
+/// file's contents to the top of any compiled file.
+
+// !!core is a compiler intrinsic that tells the compiler to search the install
+// directory under std/core/[ARG].beach for a file to embed here.
+!!core types;

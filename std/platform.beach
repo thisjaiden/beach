@@ -1,5 +1,6 @@
 !!export_all;
 /// Standard functions that depend highly on the platform targeted.
+/// `system` keyword based imports search `platform.beach`.
 
 file io~~;
 file process~~;
