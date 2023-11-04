@@ -1,4 +1,4 @@
-use std::iter::Peekable;
+use std::{iter::Peekable, ops::Add};
 
 use crate::{utils::*, parser::beach::lst::{Symbol, keywords::Keyword}};
 
@@ -9,11 +9,30 @@ pub struct Program {
     pub main_tasks: Vec<Task>,
 }
 
+impl Add for Program {
+    type Output = Program;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut out = self;
+        let mut two = rhs;
+        out.definitions.append(&mut two.definitions);
+        out.global_tasks.append(&mut two.global_tasks);
+        out.global_tasks.append(&mut two.main_tasks);
+        return out;
+    }
+}
+
 impl Program {
-    pub fn from_lst(lst: super::lst::Syntax) -> Result<Program, anyhow::Error> {
+    pub fn from_lst(lst: super::lst::Syntax, prefix: Option<String>) -> Result<Program, anyhow::Error> {
         let mut program = Program { definitions: vec![], global_tasks: vec![], main_tasks: vec![] };
         let mut syms = lst.symbols.iter().peekable();
         // TODO: split this into several functions for basic context and structure
+        program.global_scope(&mut syms);
+        Ok(program)
+    }
+    fn global_scope<'a, I>(&mut self, syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
+    where
+        I: Iterator<Item = &'a Symbol> {
         while syms.peek().is_some() {
             match syms.next().unwrap() {
                 Symbol::Comment(_) | Symbol::Comments(_) => {}
@@ -28,11 +47,11 @@ impl Program {
                                 if let Some(&&Symbol::PhraseEnd) = syms.peek() {
                                     // PhraseEnd found! Statement complete!
                                     syms.next();
-                                    program.definitions.push(Definition::System { label: label.clone() });
+                                    self.definitions.push(Definition::System { label: label.clone() });
                                 }
                                 else {
                                     return Err(anyhow::Error::msg(
-                                        format!("Expected `;` following `needs {}`. (TODO: ANNOTATIONS)", label)
+                                        format!("Expected `;` following `system {}`. (TODO: ANNOTATIONS)", label)
                                     ));
                                 }
                             }
@@ -40,7 +59,7 @@ impl Program {
                         Keyword::Kmain => {
                             if Some(&&Symbol::OpenBrace) == syms.peek() {
                                 syms.next();
-                                program.main_scope(&mut syms)?;
+                                self.main_scope(syms)?;
                             }
                             else {
                                 return Err(anyhow::Error::msg(
@@ -64,7 +83,7 @@ impl Program {
                             // ...
                             todo!();
                         }
-                        program.global_tasks.push(Task::Call { label: l.to_string(), arguments });
+                        self.global_tasks.push(Task::Call { label: l.to_string(), arguments });
                     }
                     // Creating an alias if we find Alias, PhraseEnd
                     if let Some(&&Symbol::Alias) = syms.peek() {
@@ -92,7 +111,7 @@ impl Program {
                             if let Some(&&Symbol::PhraseEnd) = syms.peek() {
                                 // PhraseEnd found! Statement complete!
                                 syms.next();
-                                program.definitions.push(Definition::Alias { label: l.clone(), points_to: out_lab_with_refs.clone() });
+                                self.definitions.push(Definition::Alias { label: l.clone(), points_to: out_lab_with_refs.clone() });
                             }
                             else {
                                 return Err(anyhow::Error::msg(
@@ -110,7 +129,7 @@ impl Program {
                 k => todo!("{:?}", k)
             }
         }
-        Ok(program)
+        Ok(())
     }
     fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
     where

@@ -1,5 +1,7 @@
 use std::env::args;
 
+use crate::parser::beach::Definition;
+
 pub fn main() {
     println!("🏖️ beach v{}", env!("CARGO_PKG_VERSION"));
     let mut args = args();
@@ -16,7 +18,7 @@ pub fn main() {
                 let parsed_data = crate::parser::beach::parse_string_file(data);
                 println!("{:#?}", parsed_data);
                 println!("Abstracting...");
-                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data).unwrap();
+                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data, None).unwrap();
                 println!("{:#?}", abstract_data);
                 println!("Generating IR...");
                 let ir_data = crate::parser::beach::intermediate_representation(abstract_data);
@@ -28,6 +30,7 @@ pub fn main() {
             }
             "build" => build(&mut args),
             "help" => help(&mut args),
+            "info" => info(&mut args),
             _ => todo!()
         }
     }
@@ -102,25 +105,54 @@ fn build(args: &mut std::env::Args) {
     }
     // TOCTOU ok here: We handle all error conditions gracefully. We're only
     // really checking to *improve* error messages, not *provide* them.
-    // TODO: BACKLOG: Changing this to a match statement would decrease nesting,
-    // improve code readability, and potentially slightly improve performance.
-    if let Ok(exists) = input_file.try_exists() {
-        if exists {
-            if let Ok(data) = std::fs::read_to_string(input_file) {
+    match input_file.try_exists() {
+        Ok(true) => {
+            if let Ok(data) = std::fs::read_to_string(input_file.clone()) {
                 // TODO: build
                 println!("👓 Parsing file...");
                 let parsed_data = crate::parser::beach::parse_string_file(data);
                 println!("🔎 Checking syntax...");
-                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data);
+                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data, None);
                 if let Err(e) = abstract_data {
                     panic!("{}", e);
                 }
-                let abstract_data = abstract_data.unwrap();
-                loop {
+                let mut program_data = abstract_data.unwrap();
+                let mut potential_subfiles = true;
+                let mut main_file = true;
+                //let mut parsed_subfiles = vec![];
+                while potential_subfiles {
+                    potential_subfiles = false;
                     println!("👓➕ Parsing subfiles...");
-                    todo!();
+                    for definition in program_data.definitions {
+                        match definition {
+                            Definition::File { mut label } => {
+                                let mut active_path = input_file.clone();
+                                let glob = label.ends_with("~~");
+                                if glob {
+                                    label = label.trim_end_matches("~~").to_string();
+                                }
+                                if main_file {
+                                    active_path.pop();
+                                    active_path.push(format!("{label}.beach"));
+                                }
+                                else {
+                                    active_path.pop();
+                                    active_path.push(format!(""))
+                                }
+                                if let Ok(data) = std::fs::read_to_string(active_path) {
+                                    let parsed_data = crate::parser::beach::parse_string_file(data);
+                                }
+                                else {
+                                    println!("Could not find file `{label}.beach` imported from the main file.");
+                                    std::process::exit(0);
+                                }
+                            }
+                            _ => {} // ignore
+                        }
+                    }
                     println!("🔎➕ Checking subfiles...");
                     todo!();
+                    main_file = false;
                 }
                 println!("📖 Generating intermediates...");
                 todo!();
@@ -149,11 +181,24 @@ fn build(args: &mut std::env::Args) {
                 println!("`main.beach` is not valid UTF-8 or otherwise could not be read.");
             }
         }
-        else {
+        Ok(false) => {
             println!("`main.beach` not found. Check your directory and try again.");
         }
+        Err(_) => {
+            println!("Unable to find or access `main.beach`. Check directory permissions and try again.");
+        }
     }
-    else {
-        println!("Unable to find or access `main.beach`. Check directory permissions and try again.");
-    }
+}
+
+fn info(args: &mut std::env::Args) {
+    // TODO: auto generate this date on build
+    println!("🕰️ Approximate build date: November 2023");
+    // TODO: error handling
+    println!("🔍Executable located at {}", std::env::current_exe().unwrap().display());
+    // TODO: change when repo is made public
+    println!("🛠️ Closed Alpha. Do not redistribute.");
+    // I understand *this* repository was not created in 2019, but some code in
+    // this repository is migrated from other locations datestamped as far back
+    // as 2019, thus grandfathering in the date.
+    println!("©️ Created and (c) Jaiden Bernard 2019-2023.");
 }

@@ -1,6 +1,40 @@
-use std::io::Read;
+use std::{io::Read, path::PathBuf, str::FromStr, env::home_dir, hint::black_box};
 
 use crate::parser::beach::RESERVED_LABEL_SYMBOLS;
+
+/// Returns a path to the folder in which beach is installed.
+fn install_directory() -> PathBuf {
+    // TODO: find and point to install path
+    #[cfg(target_os = "macos")]
+    {
+        let mut path = PathBuf::from_str(
+            std::env::var_os("HOME")
+                .expect("$HOME not set on MacOS")
+                .to_str()
+                .expect("$HOME not valid UTF-8")
+            ).expect("Unable to construct $HOME path");
+        path.push("Application Support");
+        path.push("beach");
+        return path;
+    }
+    return PathBuf::from_str("~/Application Support/").expect("Unable to construct path");
+
+    //#[cfg(target_os = "windows")]
+    // %appdata%/beach?
+
+    //#[cfg(target_os = "linux")]
+    // $HOME/beach?
+
+    // other arches
+    todo!();
+}
+
+#[test]
+fn test_install_directory() {
+    // verify getting the path is working
+    let dir = install_directory();
+    black_box(dir);
+}
 
 /// Reads `num_bytes` from a [Read] source, returning the output in a new [Vec].
 // TODO: Errors, example usage
