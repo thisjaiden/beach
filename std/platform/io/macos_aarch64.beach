@@ -1,4 +1,4 @@
-!!export all
+!!export all;
 
 var stdout = |output: printable| -> nothing {
     // Convert our `printable` input into a `string` for universal output

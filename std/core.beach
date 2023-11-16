@@ -5,5 +5,6 @@
 /// file's contents to the top of any compiled file.
 
 // !!core is a compiler intrinsic that tells the compiler to search the install
-// directory under std/core/[ARG].beach for a file to embed here.
+// directory under std/core/[ARG].beach for a file that is embeded at the end of
+// this file.
 !!core types;

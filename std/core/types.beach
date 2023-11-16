@@ -1,8 +1,8 @@
-dynamic type printable {
+trait printable {
     pub var to_string: function<&self, string>;
 }
 
-resolute type string {
+type string {
     var pointer: ptr;
     var length: usize;
 

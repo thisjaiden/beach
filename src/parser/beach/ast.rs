@@ -7,6 +7,7 @@ pub struct Program {
     pub definitions: Vec<Definition>,
     pub global_tasks: Vec<Task>,
     pub main_tasks: Vec<Task>,
+    pending_file_additions: Vec<String>,
 }
 
 impl Add for Program {
@@ -24,10 +25,25 @@ impl Add for Program {
 
 impl Program {
     pub fn from_lst(lst: super::lst::Syntax, prefix: Option<String>) -> Result<Program, anyhow::Error> {
-        let mut program = Program { definitions: vec![], global_tasks: vec![], main_tasks: vec![] };
+        let mut program = Program {
+            definitions: vec![],
+            global_tasks: vec![],
+            main_tasks: vec![],
+            pending_file_additions: vec![]
+        };
         let mut syms = lst.symbols.iter().peekable();
-        // TODO: split this into several functions for basic context and structure
-        program.global_scope(&mut syms);
+        program.global_scope(&mut syms)?;
+        while !program.pending_file_additions.is_empty() {
+            let mut glob_addition = String::new();
+            for addition in &program.pending_file_additions {
+                glob_addition += "\n";
+                glob_addition += addition;
+            }
+            program.pending_file_additions.clear();
+            let parsed = super::parse_string_file(glob_addition);
+            let mut syms = parsed.symbols.iter().peekable();
+            program.global_scope(&mut syms)?;
+        }
         Ok(program)
     }
     fn global_scope<'a, I>(&mut self, syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
@@ -126,10 +142,87 @@ impl Program {
                         }
                     }
                 }
+                Symbol::Compiler => {
+                    self.compiler_directive(syms)?;
+                }
                 k => todo!("{:?}", k)
             }
         }
         Ok(())
+    }
+    fn compiler_directive<'a, I>(&mut self, mut syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
+    where
+        I: Iterator<Item = &'a Symbol> {
+        if let Some(&Symbol::Label(lbl)) = syms.peek() {
+            match lbl.as_str() {
+                "core" => {
+                    // discard the "core" label
+                    syms.next();
+                    if syms.peek().is_none() {
+                        return Err(anyhow::Error::msg(
+                            "Unexpected end of file following the compiler tag `!!core`. (TODO: ANNOTATIONS)"
+                        ));
+                    }
+                    // check that there is at least one lable following our "core" delegation
+                    match syms.peek() {
+                        Some(&Symbol::Label(_)) => {}, // ignore
+                        _ => {
+                            return Err(anyhow::Error::msg(
+                                "Unexpected symbol following the compiler tag `!!core`. (TODO: ANNOTATIONS)"
+                            ));
+                        }
+                    }
+                    let mut path = install_directory();
+                    path.push("std");
+                    path.push("core");
+                    while let Some(&Symbol::Label(lbl)) = syms.peek() {
+                        // discard label
+                        syms.next();
+                        match syms.peek() {
+                            Some(&&Symbol::Divide) => {
+                                // our path continues!
+                                // add to our path as a dir
+                                path.push(lbl);
+                                // throw away our "/" so we loop
+                                syms.next();
+                            }
+                            Some(&&Symbol::PhraseEnd) => {
+                                // our path ends here.
+                                path.push(format!("{}.beach", lbl));
+                            }
+                            Some(_) => {
+                                return Err(anyhow::Error::msg(
+                                    "Unexpected symbol during compiler directive. (TODO: ANNOTATIONS)"
+                                ));
+                            }
+                            None => {
+                                return Err(anyhow::Error::msg(
+                                    "Unexpected end of file during compiler directive. (TODO: ANNOTATIONS)"
+                                ));
+                            }
+                        }
+                    }
+                    // check we end with a PhraseEnd like we should
+                    if syms.peek() != Some(&&Symbol::PhraseEnd) {
+                        return Err(anyhow::Error::msg(
+                            "Expected a semicolon following a compiler directive. (TODO: ANNOTATIONS)"
+                        ));
+                    }
+                    // TODO: do something with the path we found
+                    let core_string = std::fs::read_to_string(path)?;
+                    self.pending_file_additions.push(core_string);
+                    // throw away PhraseEnd, and we're done!
+                    syms.next();
+                },
+                _ => unimplemented!("unknown label {}", lbl)
+            }
+            Ok(())
+        }
+        else {
+            Err(anyhow::Error::msg(
+                "Expected a keyword following the compiler directive `!!` (TODO: ANNOTATIONS)"
+            ))
+        }
     }
     fn main_scope<'a, I>(&mut self, syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
     where

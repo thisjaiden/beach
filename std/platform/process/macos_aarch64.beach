@@ -1,4 +1,4 @@
-!!export all
+!!export all;
 
 var exit = |code: i16| -> never {
     // syscalls are unsafe.

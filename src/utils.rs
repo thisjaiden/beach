@@ -13,6 +13,7 @@ pub fn install_directory() -> PathBuf {
                 .to_str()
                 .expect("$HOME not valid UTF-8")
             ).expect("Unable to construct $HOME path");
+        path.push("Library");
         path.push("Application Support");
         path.push("beach");
         return path;

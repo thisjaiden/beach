@@ -76,9 +76,10 @@ pub enum Symbol {
     Label(String), //          ARG
 }
 
-// The following characters *cannot* appear in labels.
+/// A list of characters *cannot* appear in labels.
+// TODO: rest of the symbols that should go here
 pub const RESERVED_LABEL_SYMBOLS: &[char] = &[
-    ';', ',', ':', '(', ')', '[', ']', '~' // TODO: rest of the symbols that should go here
+    ';', ',', ':', '(', ')', '[', ']', '~', '/', '\\',
 ];
 
 impl Symbol {
