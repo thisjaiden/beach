@@ -121,7 +121,7 @@ export bar;
 
 ## `result`s
 
-Sometimes functions return a result\<T>. This indicates that either the function errored, or succeeded and is returning a value of type T. This is a builtin type.
+Sometimes functions return a result\<A>. This indicates that either the function errored, or succeeded and is returning a value of type A. This is a builtin type.
 
 ## typecasting
 

@@ -1,6 +1,8 @@
 trait printable {
-    pub var to_string: function<&self, string>;
+    public var to_string: function<&printable, string>;
 }
+
+alias ptr =>! usize;
 
 type string {
     var pointer: ptr;
@@ -10,7 +12,7 @@ type string {
     /// several reasons. If the string is deallocated or reallocated this is a
     /// dangling pointer. Only use this extremely sparingly and where you can
     /// verify it's safe to do so.
-    pub unsafe var get_pointer = |&self| -> ptr {
+    public unsafe var get_pointer = |&self| -> ptr {
         unsafe {
             // See the function documentation on why this is unsafe.
             return self.pointer.copy;
@@ -19,12 +21,27 @@ type string {
 
     /// Returns the length of this string, in bytes. For the length of this
     /// string in characters, see get_length_characters.
-    pub var get_length_bytes = |&self| -> usize {
+    public var get_length_bytes = |&self| -> usize {
         self.length
     }
     /// Returns the length of this string, in characters. For the length of this
     /// string in bytes, see get_length_bytes.
-    pub var get_length_characters = |&self| -> usize {
+    public var get_length_characters = |&self| -> usize {
         todo
+    }
+}
+
+type specTest {
+    public var number: u16;
+}
+
+enum result<A> {
+    case success: A;
+    case faliure: error;
+    public var is_success = |&self| -> bool {
+        match self {
+            result:success(_res) => { return true }
+            result:faliure(_err) => { return false }
+        }
     }
 }

@@ -80,6 +80,7 @@ pub enum Symbol {
 // TODO: rest of the symbols that should go here
 pub const RESERVED_LABEL_SYMBOLS: &[char] = &[
     ';', ',', ':', '(', ')', '[', ']', '~', '/', '\\',
+    '<', '>',
 ];
 
 impl Symbol {
@@ -91,6 +92,7 @@ impl Symbol {
         for (index, keyword) in keywords::KEYWORDS.iter().enumerate() {
             if &peaked_word.as_str() == keyword {
                 reader.read_word();
+                println!("{} -> {:?}", peaked_word, keywords::KEYWORDS_TYPED[index]);
                 return Some(Symbol::Keyword(keywords::KEYWORDS_TYPED[index]));
             }
         }

@@ -1,13 +1,17 @@
 pub const KEYWORDS: &[&str] = &[
-    "system", "main", "disable", "let", "return",
-    "file", "library", "for", "namespace", "type",
-    "trait"
+    "system", "main", "disable",
+    "let", "return", "file",
+    "library", "for", "namespace",
+    "type", "trait", "public",
+    "enum",
 ];
 
 pub const KEYWORDS_TYPED: &[Keyword] = &[
-    Keyword::Ksystem, Keyword::Kmain, Keyword::Kdisable, Keyword::Klet, Keyword::Kreturn,
-    Keyword::Kfile, Keyword::Klibrary, Keyword::Kfor, Keyword::Knamespace, Keyword::Ktype,
-    Keyword::Ktrait,
+    Keyword::Ksystem, Keyword::Kmain, Keyword::Kdisable,
+    Keyword::Klet, Keyword::Kreturn, Keyword::Kfile,
+    Keyword::Klibrary, Keyword::Kfor, Keyword::Knamespace,
+    Keyword::Ktype, Keyword::Ktrait, Keyword::Kpublic,
+    Keyword::Kenum,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,4 +27,6 @@ pub enum Keyword {
     Ktype, // struct types
     Ktrait, // trait types
     Kreturn, // ...
+    Kpublic, // declare struct type values as public
+    Kenum, // enum types
 }

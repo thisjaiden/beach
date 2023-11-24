@@ -30,7 +30,7 @@ impl Executable {
         for task in ast.main_tasks {
             match task {
                 Task::ExitBlock => {}, //program.entry_point.add_task(GeneratableTask::EndCall),
-                Task::Call { label, arguments } => {
+                Task::Call { function_identifier: label, arguments } => {
                     for (argument_index, argument_value) in arguments.iter().enumerate() {
                         match argument_value {
                             Value::Label(label) => {
