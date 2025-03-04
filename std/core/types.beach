@@ -2,7 +2,11 @@ trait printable {
     public var to_string: function<&printable, string>;
 }
 
-alias ptr =>! usize;
+trait error {
+    include printable;
+}
+
+ptr =>! usize;
 
 type string {
     var pointer: ptr;

@@ -1,16 +1,15 @@
-// Narrows platforms by support for stdout
-system stdout;
+// Narrows platforms by support for stdout, and adds required modules to the
+// resulting executable. You could use the shorthand `include std:stdio` here,
+// but this slightly shrinks code by not including unneeded stdio functions.
+include std:stdio:stdout;
 
 // Creates an alias: print refers to stdout
-print => stdout;
+print => std:stdio:stdout;
 
 // Runs on program start
 main {
     // Print "Hello world!" to stdout (usually a console of some sort)
-    // print("Hello world!");
-    // For this early stage, we're going to use the FFI directly (which is
-    // currently allowed !)
-    print("Hello world!", 12);
+    print("Hello world!");
 
     // End the program
     return;

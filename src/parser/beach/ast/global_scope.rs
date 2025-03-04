@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 
-use crate::parser::beach::lst::Symbol;
-use crate::parser::beach::lst::keywords::Keyword;
+use crate::parser::beach::ast::user_token_format::Symbol;
+use crate::parser::beach::ast::user_token_format::keywords::Keyword;
 
 use super::Program;
 use super::ast_types::*;

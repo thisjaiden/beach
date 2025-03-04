@@ -1,6 +1,6 @@
 use std::{io::Read, path::PathBuf, str::FromStr};
 
-use crate::parser::beach::RESERVED_LABEL_SYMBOLS;
+use crate::parser::beach::ast::user_token_format::RESERVED_LABEL_SYMBOLS;
 
 /// Returns a path to the folder in which beach is installed.
 pub fn install_directory() -> PathBuf {

@@ -10,24 +10,6 @@ pub fn main() {
     let first_arg = args.next();
     if let Some(first_arg) = first_arg {
         match first_arg.as_str() {
-            "internal_test" => {
-                use std::str::FromStr;
-                let target_dir = std::path::PathBuf::from_str("/Users/thisjaiden/Desktop/beach/tests/hello_world.beach").unwrap();
-                let data = std::fs::read_to_string(target_dir).unwrap();
-                println!("Parsing...");
-                let parsed_data = crate::parser::beach::parse_string_file(data);
-                println!("{:#?}", parsed_data);
-                println!("Abstracting...");
-                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data, None).unwrap();
-                println!("{:#?}", abstract_data);
-                println!("Generating IR...");
-                let ir_data = crate::parser::beach::intermediate_representation(abstract_data);
-                println!("{:#?}", ir_data);
-                println!("Generating assembly...");
-                let assembly_data = crate::platform::get_all_platforms()[0].generate_assembly(ir_data);
-                println!("{}", assembly_data);
-                return;
-            }
             "build" => build(&mut args),
             "help" => help(&mut args),
             "info" => info(&mut args),
@@ -200,9 +182,9 @@ fn build(args: &mut std::env::Args) {
     }
 }
 
-fn info(args: &mut std::env::Args) {
+fn info(_args: &mut std::env::Args) {
     // TODO: auto generate this date on build
-    println!("🕰️ Approximate build date: November 2023");
+    println!("🕰️ Approximate build date: March 2025");
     // TODO: error handling
     println!("🔍Executable located at {}", std::env::current_exe().unwrap().display());
     // TODO: change when repo is made public
@@ -210,5 +192,5 @@ fn info(args: &mut std::env::Args) {
     // I understand *this* repository was not created in 2019, but some code in
     // this repository is migrated from other locations datestamped as far back
     // as 2019, thus grandfathering in the date.
-    println!("©️ Created and (c) Jaiden Bernard 2019-2023.");
+    println!("©️ Created and (c) Jaiden Bernard 2019-2025.");
 }

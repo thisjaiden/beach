@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 
 use crate::utils::*;
-use crate::parser::beach::lst::Symbol;
+use crate::parser::beach::ast::user_token_format::Symbol;
 
 /// Describes a generic definition of something important to the program.
 #[derive(Debug)]

@@ -1,4 +1,4 @@
-/// # std~core
+/// # std:core
 /// 
 /// This file describes standard functions and types avalable across all
 /// platforms. `core.beach` is autoimported by all projects by copying this

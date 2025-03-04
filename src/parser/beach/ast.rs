@@ -3,9 +3,13 @@ pub use ast_types::*;
 
 mod global_scope;
 
+pub mod user_token_format;
+
 use std::{iter::Peekable, ops::Add};
 
-use crate::{utils::*, parser::beach::lst::{Symbol, keywords::Keyword}};
+use crate::utils::*;
+
+use user_token_format::{Syntax, Symbol, keywords::Keyword};
 
 #[derive(Debug)]
 pub struct Program {
@@ -28,7 +32,7 @@ impl Add for Program {
 }
 
 impl Program {
-    pub fn from_lst(lst: super::lst::Syntax, prefix: Option<String>) -> Result<Program, anyhow::Error> {
+    pub fn from_lst(lst: Syntax, prefix: Option<String>) -> Result<Program, anyhow::Error> {
         let mut program = Program {
             definitions: vec![],
             global_tasks: vec![],
@@ -44,7 +48,7 @@ impl Program {
                 glob_addition += addition;
             }
             program.pending_file_additions.clear();
-            let parsed = super::parse_string_file(glob_addition);
+            let parsed = crate::parser::parse_string_file(glob_addition);
             let mut syms = parsed.symbols.iter().peekable();
             global_scope::global_scope(&mut program, &mut syms)?;
         }
@@ -78,6 +82,24 @@ impl Program {
             return Err(anyhow::Error::msg(
                 "Expected a trait name following keyword `trait`. (TODO: ANNOTATIONS)"
             ));
+        }
+        if syms.next() != Some(&Symbol::OpenBrace) {
+            return Err(anyhow::Error::msg(
+                "Expected an opening brace following a trait declaration. (TODO: ANNOTATIONS)"
+            ));
+        }
+        // TODO: loop over insides to get all the methods
+        loop {
+            // If there's no more symbols, we've hit an invalid EOF
+            if syms.next().is_none() {
+                return Err(anyhow::Error::msg(
+                    "Unexpected EOF while parsing trait (TODO: ANNOTATIONS)"
+                ));
+            }
+            // If we've hit a closing brace, we're done!
+            if syms.next() == Some(&Symbol::CloseBrace) {
+                break;
+            }
         }
         todo!();
         return Ok(Definition::Trait {

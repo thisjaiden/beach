@@ -49,6 +49,12 @@ pub fn convert_instruction(instruction: Instruction) -> u32 {
 
             return ins;
         }
-        _ => todo!()
+        Instruction::BDotXX { condition, offset } => {
+            let mut ins = 0;
+
+            todo!();
+            return ins;
+        }
+        ins => todo!("ins not finished {:?}", ins)
     }
 }

@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Instruction {
     /// ### {B}ranch to a signed offset.
     /// 
@@ -73,6 +74,7 @@ pub enum Instruction {
     MOVZ { destination: Register, value: u16, shift: u8, half: bool },
 }
 
+#[derive(Debug)]
 pub enum Condition {
     /// ### {E}{Q}ual
     /// 
@@ -154,6 +156,7 @@ impl Condition {
     }
 }
 
+#[derive(Debug)]
 pub enum Register {
     /// General purpose registers with argument and return values conventions.
     R0, R1, R2, R3, R4, R5, R6, R7,
@@ -191,16 +194,16 @@ impl Register {
         // I know this sucks. Oh well! It's Fast Enough:tm: and not so horrible
         // I'd bother with a macro or library.
         match self {
-            Self::R0 => 0b00000,
-            Self::R1 => 0b00001,
-            Self::R2 => 0b00010,
-            Self::R3 => 0b00011,
-            Self::R4 => 0b00100,
-            Self::R5 => 0b00101,
-            Self::R6 => 0b00110,
-            Self::R7 => 0b00111,
-            Self::R8 => 0b01000,
-            Self::R9 => 0b01001,
+            Self::R0  => 0b00000,
+            Self::R1  => 0b00001,
+            Self::R2  => 0b00010,
+            Self::R3  => 0b00011,
+            Self::R4  => 0b00100,
+            Self::R5  => 0b00101,
+            Self::R6  => 0b00110,
+            Self::R7  => 0b00111,
+            Self::R8  => 0b01000,
+            Self::R9  => 0b01001,
             Self::R10 => 0b01010,
             Self::R11 => 0b01011,
             Self::R12 => 0b01100,
@@ -222,7 +225,7 @@ impl Register {
             Self::R28 => 0b11100,
             Self::R29 => 0b11101,
             Self::R30 => 0b11110,
-            Self::ZR => 0b11111,
+            Self::ZR  => 0b11111,
             _ => panic!("This register is not valid in a 5 bit encoding context!")
         }
     }
