@@ -107,9 +107,12 @@ impl Program {
             methods: vec![]
         })
     }
-    fn compiler_directive<'a, I>(&mut self, syms: &mut Peekable<I>) -> Result<(), anyhow::Error>
+    fn compiler_directive<'a, I>(&mut self, syms: &mut Peekable<I>, data: &String) -> Result<(), anyhow::Error>
     where
         I: Iterator<Item = &'a Symbol> {
+        if data == "core" {
+            // we can ignore this directive, which is not used here.
+        }
         if let Some(&Symbol::Label(lbl)) = syms.peek() {
             match lbl.as_str() {
                 "core" => {

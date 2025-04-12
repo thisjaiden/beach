@@ -145,6 +145,9 @@ Scope & Functions
     | usize     | 0x12345678            | compiler | pointer width    |
     | isize     | -583815               | compiler | signed usize     |
     | ptr       | 0xDEADBEEF            | compiler | usize alias      |
+    | list      | [5, 7, 2]             | struct   | fixed size       |
+    | tuple     | ("bar", 14, false)    | compiler | fixed size/types |
+    | array     | {5, 7, 2}             | struct   | variable size    |
     | function  | \|\| -> () {}         | struct   |                  |
     | error     |                       | trait    |                  |
     | printable | "Foo"                 | trait    |                  |

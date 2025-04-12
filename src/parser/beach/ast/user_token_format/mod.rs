@@ -4,7 +4,7 @@ pub mod keywords;
 
 use self::keywords::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Syntax {
     pub symbols: Vec<Symbol>,
     // tracks line nums, etc.
@@ -19,12 +19,12 @@ impl Syntax {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Annotation {
     // TODO
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Symbol {
     Comment(String), //        //ARG
     Comments(String), //       /*ARG*/
@@ -67,7 +67,7 @@ pub enum Symbol {
     Also, //                   ,
     LeftShift, //              <<
     RightShift, //             >>
-    Compiler, //               !!
+    Compiler(String), //       !!ARG
     String(String), //         "ARG"
     Keyword(Keyword), //       ARG
     Integer(Bigint), //        ARG
@@ -92,7 +92,7 @@ impl Symbol {
         for (index, keyword) in keywords::KEYWORDS.iter().enumerate() {
             if &peaked_word.as_str() == keyword {
                 reader.read_word();
-                println!("{} -> {:?}", peaked_word, keywords::KEYWORDS_TYPED[index]);
+                //println!("{} -> {:?}", peaked_word, keywords::KEYWORDS_TYPED[index]);
                 return Some(Symbol::Keyword(keywords::KEYWORDS_TYPED[index]));
             }
         }
@@ -118,7 +118,7 @@ impl Symbol {
                 }
                 else if second_char == Some('!') {
                     reader.read_char();
-                    return Some(Symbol::Compiler);
+                    return Some(Symbol::Compiler(reader.read_until(';')));
                 }
                 else {
                     return Some(Symbol::LogicNot);

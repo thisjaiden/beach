@@ -1,9 +1,9 @@
 use std::env::args;
 
-use crate::{parser::beach::Definition, utils::install_directory};
+use crate::{parser::beach::ast::user_token_format::{keywords::Keyword, Symbol}, utils::install_directory};
 
 pub fn main() {
-    println!("🏖️ beach v{}", env!("CARGO_PKG_VERSION"));
+    println!("beach 🏖️  v{}", env!("CARGO_PKG_VERSION"));
     let mut args = args();
     // We don't need the running executable's path (if it exists)
     args.next().unwrap();
@@ -87,98 +87,193 @@ fn build(args: &mut std::env::Args) {
     }
     // TOCTOU ok here: We handle all error conditions gracefully. We're only
     // really checking to *improve* error messages, not *provide* them.
-    match input_file.try_exists() {
-        Ok(true) => {
-            if let Ok(data) = std::fs::read_to_string(input_file.clone()) {
-                // Import std~core into file directly
-                let mut dir = install_directory();
-                dir.push("std");
-                dir.push("core.beach");
-                let std_core = std::fs::read_to_string(dir).unwrap();
-                // Reassign file with std imported
-                let data = std_core + &data;
+    let file_exists = input_file.try_exists();
+    if let Err(_e) = file_exists {
+        // TODO: check input filename for error
+        println!("Unable to find or access `main.beach`. Check directory permissions and try again.");
+        std::process::exit(0);
+    }
+    if let Ok(false) = file_exists {
+        // TODO: check input filename for error
+        println!("`main.beach` not found. Check your directory and try again.");
+        std::process::exit(0);
+    }
 
-                // Parse file to lst
-                println!("👓 Parsing file...");
-                let parsed_data = crate::parser::beach::parse_string_file(data);
+    if let Ok(data) = std::fs::read_to_string(input_file.clone()) {
+        // Import std:core into file directly
+        let mut dir = install_directory();
+        dir.push("stdlib");
+        dir.push("core.beach");
+        let std_core = std::fs::read_to_string(dir).unwrap();
+        // Reassign file with std imported
+        let data = std_core + &data;
 
-                // Parse file to ast
-                println!("🔎 Checking syntax...");
-                let abstract_data = crate::parser::beach::abstract_syntax(parsed_data, None);
-                if let Err(e) = abstract_data {
-                    panic!("{}", e);
-                }
-                let mut program_data = abstract_data.unwrap();
-                let mut potential_subfiles = true;
-                let mut main_file = true;
-                //let mut parsed_subfiles = vec![];
-                while potential_subfiles {
-                    potential_subfiles = false;
-                    println!("👓➕ Parsing subfiles...");
-                    for definition in program_data.definitions {
-                        match definition {
-                            Definition::File { mut label } => {
-                                let mut active_path = input_file.clone();
-                                let glob = label.ends_with("~~");
-                                if glob {
-                                    label = label.trim_end_matches("~~").to_string();
-                                }
-                                if main_file {
-                                    active_path.pop();
-                                    active_path.push(format!("{label}.beach"));
+        // Parse file to ast
+        println!("👓 Parsing main file...");
+        let parsed_data = crate::parser::parse_string_file(data);
+
+        // Find and parse subfiles
+        let input_file_ending = input_file.file_name().unwrap().to_str().unwrap().to_string();
+        let mut potential_subfiles_in = vec![input_file_ending.clone()];
+        // Vec<(filepath from project root, ast)>
+        let mut current_files = vec![(input_file_ending.clone(), parsed_data)];
+        let mut file_names = vec![input_file_ending.clone()];
+        while !potential_subfiles_in.is_empty() {
+            let mut idx = 0;
+            'outer: for loc in &potential_subfiles_in.clone() {
+                println!("👓 Parsing files ({}/{})...", potential_subfiles_in.len(), current_files.len());
+                //println!("{:?} / {:?}", potential_subfiles_in, current_files);
+                for (locof, syntax) in &current_files.clone() {
+                    if locof == loc {
+                        let mut iterator = syntax.symbols.iter();
+                        while let Some(symbol) = iterator.next() {
+                            if Symbol::Keyword(Keyword::Kfile) == *symbol {
+                                let target = iterator.next();
+                                if let Some(Symbol::Label(lbl)) = target {
+                                    let glob = lbl.ends_with(":*");
+                                    let mut working_pathized = lbl.clone();
+                                    if glob {
+                                        working_pathized = working_pathized.trim_end_matches(":*").to_string();
+                                        todo!();
+                                    }
+                                    #[cfg(target_family = "unix")]
+                                    { working_pathized = working_pathized.replace(":", "/") }
+                                    #[cfg(not(target_family = "unix"))]
+                                    { working_pathized = working_pathized.replace(":", "\\") }
+
+                                    let mut file_path = input_file.clone();
+                                    file_path.pop();
+                                    file_path = file_path.join(locof);
+                                    file_path.pop();
+                                    file_path = file_path.join(working_pathized);
+                                    let file_string = file_path.clone().into_os_string().to_string_lossy().to_string();
+                                    current_files.push(
+                                        (file_string.clone(),
+                                        crate::parser::parse_string_file(std::fs::read_to_string(file_path.clone()).unwrap()))
+                                    );
+                                    if !file_names.contains(&file_string) {
+                                        potential_subfiles_in.push(file_string.clone());
+                                        file_names.push(file_string.clone());
+                                    }
                                 }
                                 else {
-                                    active_path.pop();
-                                    active_path.push(format!(""))
-                                }
-                                if let Ok(data) = std::fs::read_to_string(active_path) {
-                                    let parsed_data = crate::parser::beach::parse_string_file(data);
-                                }
-                                else {
-                                    println!("Could not find file `{label}.beach` imported from the main file.");
+                                    println!("Failed parsing.");
                                     std::process::exit(0);
                                 }
                             }
-                            _ => {} // ignore
+                            else if Symbol::Keyword(Keyword::Kinclude) == *symbol {
+                                let target = iterator.next();
+                                let mut next_target = iterator.next();
+                                let mut total_label = String::new();
+                                if let Some(Symbol::Label(lbl)) = target {
+                                    total_label += lbl;
+                                }
+                                else {
+                                    // TODO: handle this case
+                                    todo!();
+                                }
+                                // TODO: handle invalid symbols and premature end
+                                while next_target != Some(&Symbol::PhraseEnd) && next_target.is_some() {
+                                    if next_target == Some(&Symbol::Is) {
+                                        #[cfg(target_family = "unix")]
+                                        { total_label += "/"; }
+                                        #[cfg(not(target_family = "unix"))]
+                                        { total_label += "\\"; }
+                                    }
+                                    else if let Some(Symbol::Label(lbl)) = next_target {
+                                        total_label += lbl;
+                                    }
+                                    next_target = iterator.next();
+                                }
+
+                                let mut file_path = install_directory();
+                                file_path.push("stdlib");
+                                file_path.push("std");
+                                file_path = file_path.join(&total_label);
+                                file_path.set_extension("beach");
+                                if !file_path.try_exists().is_ok_and(|v| v) {
+                                    file_path.pop();
+                                    file_path.set_extension("beach");
+                                }
+                                let file_string = file_path.clone().into_os_string().to_string_lossy().to_string();
+                                //println!("in {}", locof);
+                                //println!("current file tokens: {:#?}", current_files[0].1);
+                                //println!("looking for all: {:?}", potential_subfiles_in);
+                                //println!("have the following: {:?}", file_names);
+                                //println!("label: {}", total_label);
+                                //println!("Searching for: {:?}", file_path);
+                                current_files.push(
+                                    (file_string.clone(),
+                                    crate::parser::parse_string_file(std::fs::read_to_string(file_path.clone()).unwrap()))
+                                );
+                                if !file_names.contains(&file_string) {
+                                    potential_subfiles_in.push(file_string.clone());
+                                    file_names.push(file_string.clone());
+                                }
+                            }
+                            else if let Symbol::Compiler(val) = symbol {
+                                let mut iter = val.split(" ");
+                                if iter.next() == Some("core") {
+                                    let path = iter.next().unwrap();
+                                    #[cfg(not(target_family = "unix"))]
+                                    let path = path.replace("/", "\\");
+                                    let mut dirpath = install_directory();
+                                    dirpath.push("stdlib");
+                                    dirpath.push("core");
+                                    dirpath.push(format!("{}.beach", path));
+                                    let file_string = dirpath.to_str().unwrap().to_string();
+                                    current_files.push(
+                                        (file_string.clone(),
+                                        crate::parser::parse_string_file(std::fs::read_to_string(dirpath.clone()).unwrap()))
+                                    );
+                                    if !file_names.contains(&file_string) {
+                                        potential_subfiles_in.push(file_string.clone());
+                                        file_names.push(file_string.clone());
+                                    }
+                                }
+                            }
+                            // */
                         }
-                    }
-                    println!("🔎➕ Checking subfiles...");
-                    todo!();
-                    main_file = false;
-                }
-                println!("📖 Generating intermediates...");
-                todo!();
-                println!("🎛️ Calculating valid targets...");
-                todo!();
-                /*
-                for target in valid_targets {
-                    println!("🔨 Compiling for {}", target.name);
-                    todo!();
-                    if output_assembly {
-                        todo!();
-                    }
-                    for packager in target.packagers {
-                        println!("📦 Packaging as {}...", packager.name);
-                        todo!();
+                        // cleanse the list!
+                        potential_subfiles_in.remove(idx);
+                        break 'outer;
                     }
                 }
-                println!(
-                    "☑️ Built for {} targets in {}",
-                    valid_targets.len(),
-                    elapsed_build_time
-                );
-                */
+                idx += 1;
             }
-            else {
-                println!("`main.beach` is not valid UTF-8 or otherwise could not be read.");
+            if idx.checked_sub(1) == Some(potential_subfiles_in.len()) {
+                panic!("Couldn't find appropriate location!");
+            }
+            //println!("All filenames: {:?}", file_names);
+            //println!("Looking for files: {:?}", potential_subfiles_in);
+            //println!("Parsed files: {:?}", current_files);
+        }
+        println!("DEBUG / All filenames: {:#?}", file_names);
+        println!("📖 Generating intermediates...");
+        todo!();
+        println!("🎛️ Calculating valid targets...");
+        todo!();
+        /*
+        for target in valid_targets {
+            println!("🔨 Compiling for {}", target.name);
+            todo!();
+            if output_assembly {
+                todo!();
+            }
+            for packager in target.packagers {
+                println!("📦 Packaging as {}...", packager.name);
+                todo!();
             }
         }
-        Ok(false) => {
-            println!("`main.beach` not found. Check your directory and try again.");
-        }
-        Err(_) => {
-            println!("Unable to find or access `main.beach`. Check directory permissions and try again.");
-        }
+        println!(
+            "☑️ Built for {} targets in {}",
+            valid_targets.len(),
+            elapsed_build_time
+        );
+        */
+    }
+    else {
+        println!("`main.beach` is not valid UTF-8 or otherwise could not be read.");
     }
 }
 

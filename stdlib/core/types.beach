@@ -1,0 +1,87 @@
+trait printable {
+    public var to_string: |&self| -> string;
+}
+
+trait error {
+    public trait printable;
+}
+
+ptr =>! usize;
+
+type string {
+    var pointer: ptr;
+    var length: usize;
+
+    /// Returns a raw pointer to the string in memory. This is highly unsafe for
+    /// several reasons. If the string is deallocated or reallocated this is a
+    /// dangling pointer. Only use this extremely sparingly and where you can
+    /// verify it's safe to do so.
+    public unsafe var get_pointer = |&self| -> ptr {
+        unsafe {
+            // See the function documentation on why this is unsafe.
+            return self.pointer.copy;
+        }
+    }
+
+    /// Returns the length of this string, in bytes. For the length of this
+    /// string in characters, see get_length_characters.
+    public var get_length_bytes = |&self| -> usize {
+        self.length
+    }
+    /// Returns the length of this string, in characters. For the length of this
+    /// string in bytes, see get_length_bytes.
+    public var get_length_characters = |&self| -> usize {
+        todo
+    }
+}
+
+type array {
+    var pointer: ptr;
+    var length: usize;
+    var capacity: usize;
+}
+
+type specTest {
+    public var number: u16;
+}
+
+enum result<G, E> where E: error {
+    case good: G;
+    case error: E;
+    public var is_success = |&self| -> bool {
+        match self {
+            result:success(_res) => { return true },
+            result:faliure(_err) => { return false }
+        }
+    }
+    public var map<N> = |&self, mapper: |in: G| -> N| -> result<N, F> {
+        match self {
+            result:success(res) => { return result:success(mapper(res)) },
+            result:faliure(err) => { return result:faliure(err) }
+        }
+        with self as result:success(result_value) {
+            return result:success(mapper(result_value))
+        }
+        otherwise as result
+    }
+    extension where G: printable {
+        public trait printable {
+            public var to_string = |&self| -> string {
+                match self {
+                    result:success(res) => { return result:success(mapper(res)) },
+                    result:faliure(err) => { return result:faliure(err) }
+                }
+                if self.is_success() {
+                    string:new("good (")
+                }
+            }
+        }
+    }
+}
+
+enum maybe<A> {
+    case yes: A;
+    case no;
+
+    public 
+}

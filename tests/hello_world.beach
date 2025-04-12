@@ -1,10 +1,10 @@
 // Narrows platforms by support for stdout, and adds required modules to the
 // resulting executable. You could use the shorthand `include std:stdio` here,
 // but this slightly shrinks code by not including unneeded stdio functions.
-include std:stdio:stdout;
+include io:stdout;
 
 // Creates an alias: print refers to stdout
-print => std:stdio:stdout;
+print => stdout;
 
 // Runs on program start
 main {

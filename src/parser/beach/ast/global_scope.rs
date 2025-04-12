@@ -113,8 +113,8 @@ where
                     }
                 }
             }
-            Symbol::Compiler => {
-                program.compiler_directive(syms)?;
+            Symbol::Compiler(data) => {
+                program.compiler_directive(syms, data)?;
             }
             k => todo!("{:?}", k)
         }
