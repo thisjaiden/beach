@@ -4,9 +4,13 @@ use crate::{parser::beach::ast::user_token_format::{keywords::Keyword, Symbol}, 
 
 pub fn main() {
     println!("beach 🏖️  v{}", env!("CARGO_PKG_VERSION"));
+
     let mut args = args();
     // We don't need the running executable's path (if it exists)
     args.next().unwrap();
+
+    // The first argument passed to beach should be the main task of this
+    // execution cycle.
     let first_arg = args.next();
     if let Some(first_arg) = first_arg {
         match first_arg.as_str() {
@@ -112,23 +116,68 @@ fn build(args: &mut std::env::Args) {
         println!("👓 Parsing main file...");
         let parsed_data = crate::parser::parse_string_file(data);
 
-        // Find and parse subfiles
+        /*
+         * Find and parse subfiles
+         * =======================
+         * This section steps through every current unprocessed file to find all
+         * imports and refrences. If an import hasn't yet been calculated
+         * elsewhere, it's added as another file to process. This repeats until
+         * there are no remaining unprocessed files.
+         * 
+         * This process does not verify correct syntax or logic and may
+         * erroniously import files in the case of incomplete or incorrect input
+         * code. Treat its output gently and start with the main project file.
+         */
+        
+        // Main file's name (main.beach, alternate_main_file_name.beach, etc.)
         let input_file_ending = input_file.file_name().unwrap().to_str().unwrap().to_string();
+        // A list of all files that have not yet been processed for looking for
+        // imports. They are stored in the relative path format (pathname
+        // relative to project root, host platform style dividers)
         let mut potential_subfiles_in = vec![input_file_ending.clone()];
-        // Vec<(filepath from project root, ast)>
+        // Files that have been aquired from disk. This vector contains both
+        // parsed and unparsed files.
+        // Vec<(relative path format, ast)>
         let mut current_files = vec![(input_file_ending.clone(), parsed_data)];
+        // A list of all files that have been aquired into `current_files`. This
+        // vector contains both parsed and unparsed files as Strings with the
+        // relative path format.
         let mut file_names = vec![input_file_ending.clone()];
+
+        // As long as we have at least one file left to check, we should keep going!
         while !potential_subfiles_in.is_empty() {
+            // Why use a manual index variable for the `'outer` for loop?
+            // Because we remove elements from it mid-iteration! Not really the
+            // best idea... but I'm not super sure how I want to do this yet so
+            // this gets the job done.
             let mut idx = 0;
             'outer: for loc in &potential_subfiles_in.clone() {
                 println!("👓 Parsing files ({}/{})...", potential_subfiles_in.len(), current_files.len());
-                //println!("{:?} / {:?}", potential_subfiles_in, current_files);
                 for (locof, syntax) in &current_files.clone() {
                     if locof == loc {
-                        let mut iterator = syntax.symbols.iter();
-                        while let Some(symbol) = iterator.next() {
+                        /* 
+                         * Okay, we have two loops, `'outer` and what we'll call
+                         * `'inner` for explanation's sake.
+                         * 
+                         * 'outer goes over every file we still need to look at.
+                         * 'inner goes over every file we've aquired the ast for.
+                         * 
+                         * This *should* be more than zero files unless we've
+                         * parsed every file in `potential_subfiles`.
+                         * 
+                         * If 'outer and 'inner are matching the same file, we
+                         * handle the file we've found. Once we've handled that
+                         * file, we break out of 'outer to avoid the funkiness
+                         * of iterating over a clone of a list we just modified
+                         * the original of.
+                         * 
+                         * This restarts us at the top of the while loop.
+                         */
+                        let mut symbols = syntax.symbols.iter();
+                        while let Some(symbol) = symbols.next() {
                             if Symbol::Keyword(Keyword::Kfile) == *symbol {
-                                let target = iterator.next();
+                                // Local imports using `file`
+                                let target = symbols.next();
                                 if let Some(Symbol::Label(lbl)) = target {
                                     let glob = lbl.ends_with(":*");
                                     let mut working_pathized = lbl.clone();
@@ -162,8 +211,9 @@ fn build(args: &mut std::env::Args) {
                                 }
                             }
                             else if Symbol::Keyword(Keyword::Kinclude) == *symbol {
-                                let target = iterator.next();
-                                let mut next_target = iterator.next();
+                                // Standard library imports using `include`
+                                let target = symbols.next();
+                                let mut next_target = symbols.next();
                                 let mut total_label = String::new();
                                 if let Some(Symbol::Label(lbl)) = target {
                                     total_label += lbl;
@@ -183,7 +233,7 @@ fn build(args: &mut std::env::Args) {
                                     else if let Some(Symbol::Label(lbl)) = next_target {
                                         total_label += lbl;
                                     }
-                                    next_target = iterator.next();
+                                    next_target = symbols.next();
                                 }
 
                                 let mut file_path = install_directory();
@@ -195,6 +245,8 @@ fn build(args: &mut std::env::Args) {
                                     file_path.pop();
                                     file_path.set_extension("beach");
                                 }
+                                // TODO: verify that the path one level up actually exists
+                                
                                 let file_string = file_path.clone().into_os_string().to_string_lossy().to_string();
                                 //println!("in {}", locof);
                                 //println!("current file tokens: {:#?}", current_files[0].1);
@@ -212,6 +264,7 @@ fn build(args: &mut std::env::Args) {
                                 }
                             }
                             else if let Symbol::Compiler(val) = symbol {
+                                // Internal compiler imports using `!!core`
                                 let mut iter = val.split(" ");
                                 if iter.next() == Some("core") {
                                     let path = iter.next().unwrap();
@@ -232,7 +285,6 @@ fn build(args: &mut std::env::Args) {
                                     }
                                 }
                             }
-                            // */
                         }
                         // cleanse the list!
                         potential_subfiles_in.remove(idx);
@@ -279,11 +331,9 @@ fn build(args: &mut std::env::Args) {
 
 fn info(_args: &mut std::env::Args) {
     // TODO: auto generate this date on build
-    println!("🕰️ Approximate build date: March 2025");
+    println!("🕰️ Approximate build date: April 2025");
     // TODO: error handling
     println!("🔍Executable located at {}", std::env::current_exe().unwrap().display());
-    // TODO: change when repo is made public
-    println!("🛠️ Closed Alpha. Do not redistribute.");
     // I understand *this* repository was not created in 2019, but some code in
     // this repository is migrated from other locations datestamped as far back
     // as 2019, thus grandfathering in the date.
